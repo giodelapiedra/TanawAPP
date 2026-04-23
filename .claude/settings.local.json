@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(file *.png)",
+      "Bash(stat -c '%n %s' *.png)",
+      "WebSearch",
+      "Bash(npx tsc *)",
+      "Bash(ipconfig)",
+      "Bash(npx prisma *)",
+      "Bash(netstat -ano)",
+      "Bash(curl *)",
+      "Bash(findstr :5432)",
+      "Bash(findstr /i \"IPv4\")",
+      "Bash(sc query *)",
+      "Read(//c/Program Files/PostgreSQL/**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Bash(grep *)",
+      "Bash(\"/c/Program Files/PostgreSQL/18/bin/psql\" -h 127.0.0.1 -p 5432 -U postgres -c \"SELECT version\\(\\);\" -l)",
+      "Bash(findstr :3000)",
+      "mcp__ide__getDiagnostics",
+      "Bash(node -e \"const { Client } = require\\('pg'\\); const c = new Client\\({connectionString:'postgresql://postgres:2210@localhost:5432/tanawone'}\\); c.connect\\(\\).then\\(\\(\\)=>{console.log\\('OK connected'\\);return c.end\\(\\);}\\).catch\\(e=>console.log\\('ERR:',e.message\\)\\);\")",
+      "PowerShell(psql *)",
+      "PowerShell(Test-NetConnection *)",
+      "PowerShell($tcp = New-Object System.Net.Sockets.TcpClient; try { $tcp.Connect\\('localhost', 5432\\); Write-Output \"PORT 5432 OPEN\" } catch { Write-Output \\(\"PORT 5432 CLOSED: \" + $_.Exception.Message\\) } finally { $tcp.Close\\(\\) })",
+      "Bash(node -e 'const {PrismaClient}=require\\('\\\\''@prisma/client'\\\\''\\);const p=new PrismaClient\\(\\);p.$queryRaw`SELECT 1 as ok`.then\\(r=>{console.log\\('\\\\''OK:'\\\\'',JSON.stringify\\(r\\)\\);return p.$disconnect\\(\\);}\\).catch\\(e=>{console.log\\('\\\\''ERR:'\\\\'',e.message.split\\('\\\\''\\\\n'\\\\''\\).slice\\(0,5\\).join\\('\\\\'' | '\\\\''\\)\\);process.exit\\(1\\);}\\);')",
+      "PowerShell(ipconfig | Select-String -Pattern \"IPv4|Wireless|Ethernet\" | ForEach-Object { $_.ToString\\(\\).Trim\\(\\) })",
+      "PowerShell(netsh wlan *)",
+      "PowerShell(Get-NetIPConfiguration | Where-Object { $_.NetAdapter.Status -eq 'Up' -and $_.IPv4Address } | ForEach-Object { \"{0} => {1}\" -f $_.InterfaceAlias, \\($_.IPv4Address.IPAddress -join ','\\) })",
+      "Bash(npx expo *)",
+      "Bash(awk *)",
+      "Bash(git init *)",
+      "Bash(git check-ignore *)",
+      "Bash(git add *)"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+---
+description: Architecture and coding conventions for TANAW One App backend
+globs: ["src/**/*.ts", "server.ts", "prisma/**"]
+alwaysApply: true
+---
+
+# TANAW ONE APP — Architecture Quick Reference
+
+## 4-Layer Module Pattern
+
+```
+feature.schema.ts      -> Zod schemas + DTO types ONLY
+feature.service.ts     -> Logic + Prisma ONLY. No req/res.
+feature.controller.ts  -> HTTP only. Calls service. Calls sendSuccess. No try/catch.
+feature.router.ts      -> Routes only.
+```
+
+## Request Flow
+
+```
+Request -> Router -> validate() -> [authMiddleware] -> Controller -> Service -> Prisma
+                                                                        |
+                                                              errorMiddleware (on throw)
+```
+
+## Rules
+
+R1  Layer separation — nothing crosses layers.
+R2  Services throw AppError. Controllers = zero try/catch.
+R3  All responses: `{ success, message, data/errors }` via sendSuccess/sendError.
+R4  Every POST/PATCH: `validate(Schema)` before controller.
+R5  Public: validate -> ctrl. Protected: authMiddleware -> ctrl. Role: authMiddleware -> requireRole() -> ctrl.
+R6  No Prisma in controllers. Controllers call services.
+R7  `bcrypt.hash(password, 12)`. Always strip passwordHash.
+R8  `import { env } from '../config/env'` — never process.env.
+R9  `prisma.$transaction()` for multi-step writes.
+R10 TANAW ID: `TAN-{PREFIX}-{YEAR}-{00001}` via `generateTanawId(role)`.
+
+## TANAW ID
+
+```
+TAN-RES-2026-00001   RESIDENT            (open registration)
+TAN-BGY-2026-00001   BARANGAY_OFFICIAL   (needs barangayCode, e.g. BGY-SALA-001)
+TAN-GOV-2026-00001   GOVERNMENT_EMPLOYEE (needs employeeCode, e.g. EMP-CHO-2025-001)
+```
+
+## Key Imports
+
+```ts
+import { env } from '../config/env';
+import { prisma } from '../config/database';
+import { AppError, sendSuccess, sendError } from '../utils/response.util';
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.util';
+import { generateTanawId } from '../utils/tanawId.util';
+import { validate } from '../middleware/validate.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { requireRole } from '../middleware/role.middleware';
+import { UserRole } from '@prisma/client';
+```

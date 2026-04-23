@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum UserRole {
+  RESIDENT
+  BARANGAY_OFFICIAL
+  GOVERNMENT_EMPLOYEE
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum NotificationType {
+  POST_COMMENT
+  POST_LIKE
+}
+
+enum PostVisibility {
+  COMMUNITY
+  PUBLIC
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model Barangay {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  zipCode   String?  @map("zip_code")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  users     User[]
+  posts     Post[]
+
+  @@map("barangays")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  tanawId      String     @unique @map("tanaw_id")
+  email        String     @unique
+  phone        String     @unique
+  passwordHash String     @map("password_hash")
+  role         UserRole   @default(RESIDENT)
+  status       UserStatus @default(ACTIVE)
+  firstName    String     @map("first_name")
+  middleName   String?    @map("middle_name")
+  lastName     String     @map("last_name")
+  suffix       String?
+  birthDate    DateTime   @map("birth_date")
+  gender       Gender
+  profilePhoto String?    @map("profile_photo")
+  barangayId   String?    @map("barangay_id")
+  barangay     Barangay?  @relation(fields: [barangayId], references: [id])
+  employeeCode String?    @map("employee_code")
+  department   String?
+  position     String?
+  acceptedCommunityRulesAt DateTime? @map("accepted_community_rules_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  address              Address?
+  refreshTokens        RefreshToken[]
+  deviceTokens         DeviceToken[]
+  otpCodes             OtpCode[]
+  auditLogs            AuditLog[]
+  posts                Post[]
+  postComments         PostComment[]
+  postLikes            PostLike[]
+  following            Follow[] @relation("Follower")
+  followers            Follow[] @relation("Following")
+  receivedNotifications Notification[] @relation("NotificationRecipient")
+  sentNotifications    Notification[] @relation("NotificationActor")
+
+  @@map("users")
+}
+
+model Address {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  houseNo   String?  @map("house_no")
+  street    String?
+  city      String   @default("Tanauan City")
+  province  String   @default("Batangas")
+  zipCode   String   @default("4232") @map("zip_code")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("addresses")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @map("expires_at")
+  isRevoked Boolean  @default(false) @map("is_revoked")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("refresh_tokens")
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String
+  type      String
+  expiresAt DateTime @map("expires_at")
+  isUsed    Boolean  @default(false) @map("is_used")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("otp_codes")
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("device_tokens")
+}
+
+model EmployeeCode {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  department String
+  isUsed     Boolean  @default(false) @map("is_used")
+  usedBy     String?  @map("used_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("employee_codes")
+}
+
+model TanawIdCounter {
+  id        String   @id @default(uuid())
+  role      UserRole @unique
+  year      Int
+  lastCount Int      @map("last_count")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("tanaw_id_counters")
+}
+
+model Post {
+  id         String         @id @default(uuid())
+  visibility PostVisibility @default(COMMUNITY)
+  barangayId String?        @map("barangay_id")
+  barangay   Barangay?      @relation(fields: [barangayId], references: [id], onDelete: Cascade)
+  authorId   String         @map("author_id")
+  author     User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content    String         @db.Text
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
+  comments   PostComment[]
+  likes      PostLike[]
+  images     PostImage[]
+
+  @@index([barangayId, createdAt])
+  @@index([visibility, createdAt])
+  @@index([authorId, createdAt])
+  @@map("posts")
+}
+
+model PostImage {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  objectKey String   @map("object_key")
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([postId, position])
+  @@map("post_images")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String   @map("following_id")
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([followerId, followingId])
+  @@index([followerId, createdAt])
+  @@index([followingId, createdAt])
+  @@map("follows")
+}
+
+model PostComment {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String   @map("author_id")
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([postId, createdAt])
+  @@map("post_comments")
+}
+
+model PostLike {
+  id        String   @id @default(uuid())
+  postId    String   @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([postId, userId])
+  @@map("post_likes")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  user      User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actorId   String           @map("actor_id")
+  actor     User             @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  postId    String?          @map("post_id")
+  commentId String?          @map("comment_id")
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   Json?
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}

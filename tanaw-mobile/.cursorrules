@@ -1,0 +1,170 @@
+You are a senior React Native/TypeScript engineer.
+Project: TANAW One App — City of Tanauan, Batangas, Philippines.
+Phase 1 Frontend: Auth, Home, Profile, Digital ID.
+Stack: React Native, Expo SDK 52, TypeScript, Redux Toolkit, React Navigation 6.
+
+## Architecture — Layered Frontend Pattern
+
+```
+src/
+├── constants/     Design tokens ONLY (colors, spacing, fonts)
+├── types/         TypeScript interfaces and type aliases ONLY
+├── utils/         Pure helper functions (no React, no state)
+├── api/           Axios client + endpoint functions (one file per backend module)
+├── store/slices/  Redux Toolkit slices + async thunks
+├── hooks/         Custom React hooks
+├── components/    Reusable UI components (common/, home/, id-card/)
+├── screens/       Full-page screen components (one folder per feature)
+└── navigation/    React Navigation navigators
+```
+
+## Rules
+
+F1  STYLING
+    - StyleSheet.create() ONLY. No inline style objects. No styled-components.
+    - All colors from `src/constants/colors.ts` (COLORS.PRIMARY, etc.)
+    - All spacing from `src/constants/spacing.ts` (SPACING, RADIUS, FONT_SIZE)
+    - Never hardcode hex values in components.
+
+F2  COMPONENTS
+    - Every component has a typed Props interface.
+    - Use React.FC<Props> or function Component(props: Props).
+    - No `any` types. If shape is unknown, define an interface.
+    - Components never call API directly. They dispatch thunks or receive data via props.
+
+F3  STATE MANAGEMENT
+    - Redux Toolkit for global state (auth, user profile).
+    - Local useState for UI-only state (modals, form focus, etc.).
+    - Typed hooks: `useAppDispatch()` and `useAppSelector()` from `src/store/index.ts`.
+    - Never use raw `useDispatch` or `useSelector`.
+
+F4  API LAYER
+    - All API calls go through `src/api/client.ts` (Axios instance).
+    - Interceptors handle: auth token injection, 401 auto-refresh, logout on refresh fail.
+    - API functions return `response.data.data` (unwrap the backend envelope).
+    - Never call axios directly in components or slices — always through api files.
+
+F5  NAVIGATION
+    - All param types defined in `src/types/navigation.types.ts`.
+    - Auth flow: AuthNavigator (Welcome → RoleSelect → Register → Login).
+    - Main flow: MainNavigator (bottom tabs — Home, Services, DigitalID, Emergency, Profile).
+    - RootNavigator switches between Auth and Main based on `isAuthenticated`.
+
+F6  AUTH TOKENS
+    - Stored in `expo-secure-store` (not AsyncStorage).
+    - Keys: `accessToken`, `refreshToken`.
+    - On login: store both tokens in SecureStore + Redux.
+    - On logout: clear SecureStore + reset Redux state.
+    - On app start: check SecureStore for existing tokens (checkAuthThunk).
+
+F7  FORMS
+    - Use `react-hook-form` + `@hookform/resolvers/zod` for all forms.
+    - Zod schemas for client-side validation.
+    - Show field-level errors below each input.
+    - Show API errors via ErrorMessage component.
+
+F8  COMING SOON PATTERN
+    - Unimplemented features show `<ComingSoonModal>` on tap.
+    - Pass `featureName` and `phase` props.
+    - Never leave a button/icon without a handler.
+
+F9  BACKEND API SHAPE AWARENESS
+    - Backend always returns: `{ success: boolean, message: string, data?: any }`.
+    - API functions unwrap to just `data`.
+    - User object includes `barangay` as a RELATION OBJECT (not a string):
+      ```ts
+      user.barangay = { id, code, name, zipCode, isActive }
+      ```
+    - User object includes `address` as a RELATION OBJECT:
+      ```ts
+      user.address = { id, houseNo, street, city, province, zipCode }
+      ```
+    - Barangay name: `user.barangay?.name` (NOT `user.address?.barangay`)
+    - Registration sends `barangayCode` (string code like "BGY-SALA-035")
+    - Login sends `identifier` (email OR phone OR tanawId) + `password`
+
+F10 FILE NAMING
+    - Screens: PascalCase + `Screen` suffix (HomeScreen.tsx, LoginScreen.tsx)
+    - Components: PascalCase (Button.tsx, ComingSoonModal.tsx)
+    - Hooks: camelCase + `use` prefix (useAuth.ts)
+    - Utils/API: camelCase (storage.ts, auth.api.ts)
+    - Slices: camelCase + `Slice` suffix (authSlice.ts)
+    - Types: camelCase + `.types.ts` suffix (user.types.ts)
+
+## Backend API Endpoints (Phase 1)
+
+```
+POST  /auth/register/resident    { email, phone, password, firstName, lastName, middleName?,
+                                   suffix?, birthDate, gender, barangayCode, street?, houseNo? }
+POST  /auth/register/barangay    above + { position }
+POST  /auth/register/employee    above + { employeeCode, department, position }
+POST  /auth/login                { identifier, password } → { user, accessToken, refreshToken }
+POST  /auth/refresh              { refreshToken } → { accessToken, refreshToken }
+POST  /auth/logout               (auth required)
+GET   /users/me                  → full user + address + barangay
+PATCH /users/me                  { firstName?, lastName?, middleName?, suffix?, street?, houseNo? }
+GET   /users/me/digital-id       → { tanawId, name, role, status, birthDate, barangay, address }
+POST  /users/device-token        { token, platform: "ios"|"android" }
+```
+
+## Correct TypeScript Types (matching backend)
+
+```ts
+// User from backend (after login or getProfile)
+interface User {
+  id: string
+  tanawId: string
+  email: string
+  phone: string
+  role: 'RESIDENT' | 'BARANGAY_OFFICIAL' | 'GOVERNMENT_EMPLOYEE' | 'SUPER_ADMIN'
+  status: 'PENDING_VERIFICATION' | 'ACTIVE' | 'SUSPENDED' | 'DEACTIVATED'
+  firstName: string
+  middleName?: string
+  lastName: string
+  suffix?: string
+  birthDate: string
+  gender: 'MALE' | 'FEMALE'
+  profilePhoto?: string
+  barangayId?: string
+  employeeCode?: string
+  department?: string
+  position?: string
+  createdAt: string
+  updatedAt: string
+  barangay?: {            // RELATION OBJECT, not a string
+    id: string
+    code: string
+    name: string
+    zipCode?: string
+    isActive: boolean
+  }
+  address?: {             // RELATION OBJECT
+    id: string
+    houseNo?: string
+    street?: string
+    city: string
+    province: string
+    zipCode: string
+  }
+}
+```
+
+## Key Patterns
+
+```tsx
+// Accessing barangay name (CORRECT)
+const barangayName = user?.barangay?.name ?? 'N/A'
+
+// Accessing barangay name (WRONG — Address does NOT have barangay)
+// const barangayName = user?.address?.barangay  // ❌ WRONG
+
+// Dispatching a thunk
+const dispatch = useAppDispatch()
+dispatch(loginThunk({ identifier: 'juan@gmail.com', password: 'Password123' }))
+
+// API function pattern
+export async function getProfile(): Promise<User> {
+  const res = await apiClient.get('/users/me')
+  return res.data.data
+}
+```
