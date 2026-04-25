@@ -3,7 +3,7 @@ import { DigitalIdData } from '../../types/user.types';
 import { PickedImage } from '../../utils/imagePicker.util';
 import * as usersApi from '../../api/users.api';
 import { resolveApiError, type ResolvedApiError } from '../../utils/apiError.util';
-import { logout, logoutThunk, setUser } from './authSlice';
+import { loginThunk, logout, logoutThunk, setUser } from './authSlice';
 
 interface UserState {
   digitalIdData: DigitalIdData | null;
@@ -107,7 +107,30 @@ const userSlice = createSlice({
       .addCase(logout, () => initialState)
       // Clear user data on logout
       .addCase(logoutThunk.fulfilled, () => initialState)
-      .addCase(logoutThunk.rejected, () => initialState);
+      .addCase(logoutThunk.rejected, () => initialState)
+      // Cross-slice sync: auth.user.profilePhoto is the canonical source.
+      // The digital ID is fetched once on screen mount, so without this sync
+      // the cached idData would keep showing the old photo until next refetch.
+      // We mirror the new URL into digitalIdData here so the ID card and the
+      // header avatar update in lockstep with auth.user.
+      .addCase(setUser, (state, action) => {
+        if (state.digitalIdData) {
+          state.digitalIdData = {
+            ...state.digitalIdData,
+            profilePhoto: action.payload.profilePhoto ?? undefined,
+          };
+        }
+      })
+      // Same sync on login — `auth.user` is set via loginThunk.fulfilled
+      // (not setUser), so we hook that case explicitly too.
+      .addCase(loginThunk.fulfilled, (state, action) => {
+        if (state.digitalIdData) {
+          state.digitalIdData = {
+            ...state.digitalIdData,
+            profilePhoto: action.payload.user.profilePhoto ?? undefined,
+          };
+        }
+      });
   },
 });
 

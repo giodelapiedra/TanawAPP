@@ -45,7 +45,11 @@ export default function TanawIDCard({ idData, gender, qrSize = 80, style }: Prop
 
         <View style={styles.cardProfile}>
           {idData.profilePhoto ? (
-            <Image source={{ uri: idData.profilePhoto }} style={styles.photoCircle} />
+            <Image
+              key={idData.profilePhoto}
+              source={{ uri: idData.profilePhoto }}
+              style={styles.photoCircle}
+            />
           ) : (
             <View style={styles.photoCircle}>
               <Text style={styles.photoInitials}>{initials}</Text>

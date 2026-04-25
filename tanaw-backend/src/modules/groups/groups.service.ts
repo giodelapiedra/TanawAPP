@@ -1,6 +1,7 @@
 import { prisma } from '../../config/database';
 import { AppError } from '../../utils/response.util';
 import { AUTHOR_SELECT } from '../../utils/prisma-selects.util';
+import { POST_IMAGES_SELECT, mapPostShape, mapPostShapes } from '../../utils/post-shape.util';
 import { resolveAuthorPhoto, resolveAuthorPhotos } from '../../utils/user-photo.util';
 import { CreateCommentDto, CreatePostDto, ListQueryDto, UpdatePostDto } from './groups.schema';
 import * as notificationsService from '../notifications/notifications.service';
@@ -88,22 +89,12 @@ export async function listPosts(userId: string, code: string, query: ListQueryDt
       author: { select: AUTHOR_SELECT },
       _count: { select: { comments: true, likes: true } },
       likes: { where: { userId }, select: { id: true } },
+      images: POST_IMAGES_SELECT,
     },
   });
 
   const hasMore = posts.length > query.limit;
-  const shaped = posts.slice(0, query.limit).map((p) => ({
-    id: p.id,
-    visibility: p.visibility,
-    content: p.content,
-    createdAt: p.createdAt,
-    updatedAt: p.updatedAt,
-    author: p.author,
-    likeCount: p._count.likes,
-    commentCount: p._count.comments,
-    likedByMe: p.likes.length > 0,
-  }));
-  const items = await resolveAuthorPhotos(shaped);
+  const items = await mapPostShapes(posts.slice(0, query.limit));
 
   return {
     items,
@@ -119,21 +110,12 @@ export async function getPostById(userId: string, postId: string) {
       author: { select: AUTHOR_SELECT },
       _count: { select: { comments: true, likes: true } },
       likes: { where: { userId }, select: { id: true } },
+      images: POST_IMAGES_SELECT,
     },
   });
   if (!post) throw new AppError('Post not found', 404);
 
-  return resolveAuthorPhoto({
-    id: post.id,
-    visibility: post.visibility,
-    content: post.content,
-    createdAt: post.createdAt,
-    updatedAt: post.updatedAt,
-    author: post.author,
-    likeCount: post._count.likes,
-    commentCount: post._count.comments,
-    likedByMe: post.likes.length > 0,
-  });
+  return mapPostShape(post);
 }
 
 export async function createPost(userId: string, code: string, dto: CreatePostDto) {
@@ -150,20 +132,13 @@ export async function createPost(userId: string, code: string, dto: CreatePostDt
     include: {
       author: { select: AUTHOR_SELECT },
       _count: { select: { comments: true, likes: true } },
+      // No `likes` include — a brand-new post has none for the author either way.
+      // mapPostShape reads `post.likes` so we pass an empty list explicitly below.
+      images: POST_IMAGES_SELECT,
     },
   });
 
-  return resolveAuthorPhoto({
-    id: post.id,
-    visibility: post.visibility,
-    content: post.content,
-    createdAt: post.createdAt,
-    updatedAt: post.updatedAt,
-    author: post.author,
-    likeCount: post._count.likes,
-    commentCount: post._count.comments,
-    likedByMe: false,
-  });
+  return mapPostShape({ ...post, likes: [] });
 }
 
 export async function updatePost(userId: string, postId: string, dto: UpdatePostDto) {
@@ -181,20 +156,11 @@ export async function updatePost(userId: string, postId: string, dto: UpdatePost
       author: { select: AUTHOR_SELECT },
       _count: { select: { comments: true, likes: true } },
       likes: { where: { userId }, select: { id: true } },
+      images: POST_IMAGES_SELECT,
     },
   });
 
-  return resolveAuthorPhoto({
-    id: updated.id,
-    visibility: updated.visibility,
-    content: updated.content,
-    createdAt: updated.createdAt,
-    updatedAt: updated.updatedAt,
-    author: updated.author,
-    likeCount: updated._count.likes,
-    commentCount: updated._count.comments,
-    likedByMe: updated.likes.length > 0,
-  });
+  return mapPostShape(updated);
 }
 
 export async function deletePost(userId: string, postId: string) {

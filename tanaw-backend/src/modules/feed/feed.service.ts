@@ -2,42 +2,9 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/database';
 import { AppError } from '../../utils/response.util';
 import { AUTHOR_SELECT, USER_CARD_SELECT } from '../../utils/prisma-selects.util';
+import { POST_IMAGES_SELECT, mapPostShape, mapPostShapes } from '../../utils/post-shape.util';
 import * as storageService from '../storage/storage.service';
 import { CreatePublicPostDto, DiscoverUsersQueryDto, ListQueryDto } from './feed.schema';
-
-const POST_IMAGES_SELECT = {
-  select: { id: true, objectKey: true, position: true },
-  orderBy: { position: 'asc' as const },
-};
-
-type PostWithRelations = Prisma.PostGetPayload<{
-  include: {
-    author: { select: typeof AUTHOR_SELECT };
-    _count: { select: { comments: true; likes: true } };
-    likes: { where: { userId: string }; select: { id: true } };
-    images: typeof POST_IMAGES_SELECT;
-  };
-}>;
-
-async function mapPost(post: PostWithRelations) {
-  const [authorPhotoUrl, imageUrls] = await Promise.all([
-    storageService.resolvePublicUrlIfPresent(post.author.profilePhoto),
-    Promise.all(post.images.map((img) => storageService.resolvePublicUrl(img.objectKey))),
-  ]);
-
-  return {
-    id: post.id,
-    visibility: post.visibility,
-    content: post.content,
-    createdAt: post.createdAt,
-    updatedAt: post.updatedAt,
-    author: { ...post.author, profilePhoto: authorPhotoUrl },
-    images: post.images.map((img, idx) => ({ id: img.id, url: imageUrls[idx] })),
-    likeCount: post._count.likes,
-    commentCount: post._count.comments,
-    likedByMe: post.likes.length > 0,
-  };
-}
 
 export async function createPublicPost(
   userId: string,
@@ -93,7 +60,7 @@ export async function createPublicPost(
         images: POST_IMAGES_SELECT,
       },
     });
-    return mapPost(post);
+    return mapPostShape(post);
   } catch (err) {
     await Promise.all(imageKeys.map((k) => storageService.deleteObject(k).catch(() => undefined)));
     throw err;
@@ -125,7 +92,7 @@ export async function listMyFeed(userId: string, query: ListQueryDto) {
 
   const hasMore = posts.length > query.limit;
   const pagePosts = posts.slice(0, query.limit);
-  const items = await Promise.all(pagePosts.map(mapPost));
+  const items = await mapPostShapes(pagePosts);
 
   return {
     items,

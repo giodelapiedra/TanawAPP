@@ -55,7 +55,11 @@ export default function DigitalIDScreen() {
         <View style={styles.profileBlock}>
           <View style={styles.avatarWrap}>
             {idData.profilePhoto ? (
-              <Image source={{ uri: idData.profilePhoto }} style={styles.avatar} />
+              <Image
+                key={idData.profilePhoto}
+                source={{ uri: idData.profilePhoto }}
+                style={styles.avatar}
+              />
             ) : (
               <View style={styles.avatarFallback}>
                 <Text style={styles.avatarInitials}>{initials}</Text>

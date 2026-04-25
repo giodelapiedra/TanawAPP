@@ -196,6 +196,11 @@ const PostCard = React.memo(PostCardComponent, (prev, next) =>
   prev.post.content === next.post.content &&
   prev.post.updatedAt === next.post.updatedAt &&
   prev.post.author.profilePhoto === next.post.author.profilePhoto &&
+  // Image identity matters: an older cached copy of this post can have
+  // images: undefined while a refetched copy has the resolved URLs.
+  // Skip-rerender on stale identity hides the photos until the next state push.
+  prev.post.images?.length === next.post.images?.length &&
+  prev.post.images?.[0]?.url === next.post.images?.[0]?.url &&
   prev.currentUserId === next.currentUserId
 );
 
