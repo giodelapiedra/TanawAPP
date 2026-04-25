@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { DigitalIdData } from '../../types/user.types';
 import { PickedImage } from '../../utils/imagePicker.util';
 import * as usersApi from '../../api/users.api';
+import { resolveApiError, type ResolvedApiError } from '../../utils/apiError.util';
 import { logout, logoutThunk, setUser } from './authSlice';
 
 interface UserState {
@@ -46,17 +47,23 @@ export const updateProfileThunk = createAsyncThunk(
   }
 );
 
-export const updateProfilePhotoThunk = createAsyncThunk(
+// Reject payload for the photo upload is a discriminated `ResolvedApiError`
+// so the screen can show timeout / 413 / network-specific copy without
+// re-deriving the kind of failure.
+export const updateProfilePhotoThunk = createAsyncThunk<
+  Awaited<ReturnType<typeof usersApi.updateProfilePhoto>>,
+  PickedImage,
+  { rejectValue: ResolvedApiError }
+>(
   'user/updateProfilePhoto',
-  async (image: PickedImage, { dispatch, rejectWithValue }) => {
+  async (image, { dispatch, rejectWithValue }) => {
     try {
       const updated = await usersApi.updateProfilePhoto(image);
       // Mirror into auth slice so any component selecting `auth.user` gets the new photo.
       dispatch(setUser(updated));
       return updated;
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } } };
-      return rejectWithValue(e.response?.data?.message ?? 'Upload failed');
+      return rejectWithValue(resolveApiError(err, 'Upload failed'));
     }
   }
 );
@@ -90,7 +97,10 @@ const userSlice = createSlice({
       .addCase(updateProfileThunk.rejected, (state, action) => { state.isUpdating = false; state.error = action.payload as string; })
       .addCase(updateProfilePhotoThunk.pending, (state) => { state.isUpdating = true; state.error = null; })
       .addCase(updateProfilePhotoThunk.fulfilled, (state) => { state.isUpdating = false; })
-      .addCase(updateProfilePhotoThunk.rejected, (state, action) => { state.isUpdating = false; state.error = action.payload as string; })
+      .addCase(updateProfilePhotoThunk.rejected, (state, action) => {
+        state.isUpdating = false;
+        state.error = action.payload?.message ?? action.error?.message ?? null;
+      })
       .addCase(fetchDigitalIdThunk.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(fetchDigitalIdThunk.fulfilled, (state, action) => { state.isLoading = false; state.digitalIdData = action.payload; })
       .addCase(fetchDigitalIdThunk.rejected, (state, action) => { state.isLoading = false; state.error = action.payload as string; })

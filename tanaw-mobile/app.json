@@ -25,6 +25,18 @@
     },
     "web": {
       "favicon": "./assets/TANAUAN SEAL.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f21d9b1a-cb4a-49d4-82be-a3758143df6f"
+      }
+    },
+    "owner": "gio2424",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f21d9b1a-cb4a-49d4-82be-a3758143df6f"
     }
   }
 }

@@ -9,7 +9,7 @@ import { useAppSelector } from '../../store';
 import { COLORS } from '../../constants/colors';
 import { RADIUS } from '../../constants/spacing';
 import { getFullName, getInitials } from '../../utils/format';
-import { getApiErrorMessage } from '../../utils/apiError.util';
+import { resolveApiError } from '../../utils/apiError.util';
 import { pickMultipleImages, PickedImage } from '../../utils/imagePicker.util';
 import { MAX_IMAGES_PER_POST, MAX_POST_LENGTH, POST_WARN_AT } from '../../constants/posting';
 
@@ -103,8 +103,9 @@ export default function PostComposer({
       setContent('');
       setImages([]);
       setOpen(false);
-    } catch (e: any) {
-      Alert.alert('Error', getApiErrorMessage(e, 'Failed to create post'));
+    } catch (e: unknown) {
+      const resolved = resolveApiError(e, 'Failed to create post');
+      Alert.alert(resolved.title, resolved.message);
     } finally {
       setSubmitting(false);
     }
@@ -232,8 +233,8 @@ export default function PostComposer({
 
               {images.length > 0 && (
                 <View style={styles.imagePreviewGrid}>
-                  {images.map((img) => (
-                    <View key={img.uri} style={styles.imagePreviewBox}>
+                  {images.map((img, idx) => (
+                    <View key={`${img.uri}-${idx}`} style={styles.imagePreviewBox}>
                       <Image source={{ uri: img.uri }} style={styles.imagePreview} />
                       <Pressable
                         style={styles.imageRemove}

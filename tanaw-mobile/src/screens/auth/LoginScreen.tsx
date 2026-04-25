@@ -101,6 +101,8 @@ export default function LoginScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
                 leftIcon={<Ionicons name="lock-closed-outline" size={18} color={COLORS.GRAY_500} />}
                 rightIcon={
                   <TouchableOpacity

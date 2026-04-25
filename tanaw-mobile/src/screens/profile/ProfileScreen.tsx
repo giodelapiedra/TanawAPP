@@ -67,7 +67,11 @@ export default function ProfileScreen() {
       if (!image) return;
       const result = await dispatch(updateProfilePhotoThunk(image));
       if (updateProfilePhotoThunk.rejected.match(result)) {
-        Alert.alert('Upload failed', (result.payload as string) ?? 'Please try again');
+        const resolved = result.payload;
+        Alert.alert(
+          resolved?.title ?? 'Upload failed',
+          resolved?.message ?? 'Please try again'
+        );
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Could not pick image';

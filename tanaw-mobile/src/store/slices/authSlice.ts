@@ -60,9 +60,17 @@ export const checkAuthThunk = createAsyncThunk(
       }
       const user = await usersApi.getProfile();
       return { accessToken, refreshToken, user };
-    } catch {
-      try { await clearAuthTokens(); } catch {}
-      return rejectWithValue('Session expired');
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number } };
+      const status = e.response?.status;
+      if (status === 401 || status === 403) {
+        try { await clearAuthTokens(); } catch {}
+        return rejectWithValue({ message: 'Session expired', clearSession: true });
+      }
+      return rejectWithValue({
+        message: 'Cannot verify session. Please check your connection.',
+        clearSession: false,
+      });
     }
   }
 );
@@ -119,12 +127,15 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user;
       })
-      .addCase(checkAuthThunk.rejected, (state) => {
+      .addCase(checkAuthThunk.rejected, (state, action) => {
+        const payload = action.payload as { clearSession?: boolean } | undefined;
         state.isCheckingAuth = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.accessToken = null;
-        state.refreshToken = null;
+        if (payload?.clearSession !== false) {
+          state.isAuthenticated = false;
+          state.user = null;
+          state.accessToken = null;
+          state.refreshToken = null;
+        }
       });
   },
 });

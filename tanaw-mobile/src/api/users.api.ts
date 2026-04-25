@@ -28,6 +28,7 @@ export async function updateProfilePhoto(image: PickedImage): Promise<User> {
   const res = await apiClient.post('/users/me/profile-photo', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
     transformRequest: (data) => data,
+    timeout: 60000,
   });
   return res.data.data;
 }

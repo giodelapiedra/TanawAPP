@@ -193,8 +193,10 @@ export default function FeedList() {
     }
   };
 
+  // The composer modal already has a working Photo button. We don't surface a
+  // quick-action shortcut for it here so we don't have two entry points doing
+  // the same thing. Video / Feeling / Check-In are still Phase-2 stubs.
   const quickActions: QuickAction[] = [
-    { key: 'photo', icon: 'image-outline', label: 'Photo', color: COLORS.SUCCESS, onPress: () => setStubFeature('Photo Upload') },
     { key: 'video', icon: 'videocam-outline', label: 'Video', color: COLORS.PRIMARY, onPress: () => setStubFeature('Video Upload') },
     { key: 'feeling', icon: 'happy-outline', label: 'Feeling', color: COLORS.GOLD, onPress: () => setStubFeature('Feeling / Activity') },
     { key: 'checkin', icon: 'location-outline', label: 'Check In', color: COLORS.PRIMARY, onPress: () => setStubFeature('Check In') },

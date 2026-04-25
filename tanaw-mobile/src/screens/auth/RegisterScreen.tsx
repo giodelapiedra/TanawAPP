@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { RegisterRouteProp, AuthNavigationProp } from '../../types/navigation.types';
+import { useNavigation } from '@react-navigation/native';
+import { AuthNavigationProp } from '../../types/navigation.types';
 import { COLORS } from '../../constants/colors';
 import { RADIUS } from '../../constants/spacing';
 import { BARANGAYS } from '../../constants/barangays';
@@ -25,9 +25,7 @@ const BARANGAY_OPTIONS = BARANGAYS.map((b) => ({
 }));
 
 export default function RegisterScreen() {
-  const route = useRoute<RegisterRouteProp>();
   const navigation = useNavigation<AuthNavigationProp>();
-  const { role } = route.params;
 
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,9 +46,6 @@ export default function RegisterScreen() {
   const [barangayCode, setBarangayCode] = useState('');
   const [houseNo, setHouseNo] = useState('');
   const [street, setStreet] = useState('');
-  const [employeeCode, setEmployeeCode] = useState('');
-  const [department, setDepartment] = useState('');
-  const [position, setPosition] = useState('');
 
   // Step 3
   const [password, setPassword] = useState('');
@@ -68,12 +63,6 @@ export default function RegisterScreen() {
       if (!email.trim() || !email.includes('@')) e.email = 'Enter a valid email';
       if (!/^09\d{9}$/.test(phone)) e.phone = 'Format: 09XXXXXXXXX';
       if (!barangayCode) e.barangayCode = 'Select your barangay';
-      if (role === 'BARANGAY_OFFICIAL' && !position.trim()) e.position = 'Required';
-      if (role === 'GOVERNMENT_EMPLOYEE') {
-        if (!employeeCode.trim()) e.employeeCode = 'Required';
-        if (!department.trim()) e.department = 'Required';
-        if (!position.trim()) e.position = 'Required';
-      }
     } else {
       if (password.length < 8) e.password = 'Minimum 8 characters';
       if (password !== confirmPassword) e.confirmPassword = 'Passwords do not match';
@@ -97,10 +86,7 @@ export default function RegisterScreen() {
         birthDate, gender: gender as Gender, barangayCode,
         street: street || undefined, houseNo: houseNo || undefined,
       };
-      let result;
-      if (role === 'RESIDENT') result = await authApi.registerResident(base);
-      else if (role === 'BARANGAY_OFFICIAL') result = await authApi.registerBarangay({ ...base, position });
-      else result = await authApi.registerEmployee({ ...base, employeeCode, department, position });
+      const result = await authApi.registerResident(base);
       setSuccessTanawId(result.tanawId);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } }; message?: string };
@@ -229,16 +215,6 @@ export default function RegisterScreen() {
                 <Input label="Street" value={street} onChangeText={setStreet} placeholder="Rizal St." />
               </View>
             </View>
-            {role === 'BARANGAY_OFFICIAL' && (
-              <Input label="Position" value={position} onChangeText={setPosition} error={errors.position} placeholder="Barangay Captain" />
-            )}
-            {role === 'GOVERNMENT_EMPLOYEE' && (
-              <>
-                <Input label="Employee Code" value={employeeCode} onChangeText={setEmployeeCode} error={errors.employeeCode} placeholder="EMP-CHO-2026-001" autoCapitalize="characters" />
-                <Input label="Department" value={department} onChangeText={setDepartment} error={errors.department} placeholder="City Health Office" />
-                <Input label="Position" value={position} onChangeText={setPosition} error={errors.position} placeholder="Nurse" />
-              </>
-            )}
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>Your TANAW ID will be created after registration.</Text>
             </View>

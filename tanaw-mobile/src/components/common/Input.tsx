@@ -12,6 +12,7 @@ interface Props {
   secureTextEntry?: boolean;
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  autoCorrect?: boolean;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   multiline?: boolean;
@@ -22,7 +23,7 @@ interface Props {
 
 export default function Input({
   label, placeholder, value, onChangeText, error,
-  secureTextEntry, keyboardType, autoCapitalize,
+  secureTextEntry, keyboardType, autoCapitalize, autoCorrect,
   leftIcon, rightIcon, multiline, numberOfLines,
   editable = true, style,
 }: Props) {
@@ -44,6 +45,7 @@ export default function Input({
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          autoCorrect={autoCorrect}
           multiline={multiline}
           numberOfLines={numberOfLines}
           editable={editable}

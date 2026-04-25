@@ -18,6 +18,7 @@ export async function createPublicPost(content: string, images: PickedImage[] = 
   const res = await apiClient.post('/feed/posts', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
     transformRequest: (data) => data,
+    timeout: 90000,
   });
   return res.data.data;
 }

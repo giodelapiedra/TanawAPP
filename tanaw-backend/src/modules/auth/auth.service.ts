@@ -194,7 +194,15 @@ export async function refresh(token: string) {
     throw new AppError('Invalid or expired refresh token. Please log in again.', 401);
   }
 
-  const newPayload: TokenPayload = { userId: payload.userId, tanawId: payload.tanawId, role: payload.role };
+  const user = await prisma.user.findUnique({
+    where: { id: payload.userId },
+    select: { id: true, tanawId: true, role: true, status: true },
+  });
+  if (!user || user.id !== stored.userId || user.status !== 'ACTIVE') {
+    throw new AppError('Invalid or inactive account. Please log in again.', 401);
+  }
+
+  const newPayload: TokenPayload = { userId: user.id, tanawId: user.tanawId, role: user.role };
   const accessToken = signAccessToken(newPayload);
   const refreshToken = signRefreshToken(newPayload);
 

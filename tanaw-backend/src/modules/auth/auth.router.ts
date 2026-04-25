@@ -4,8 +4,6 @@ import { validate } from '../../middleware/validate.middleware';
 import { authMiddleware } from '../../middleware/auth.middleware';
 import {
   registerResidentSchema,
-  registerBarangaySchema,
-  registerEmployeeSchema,
   loginSchema,
   refreshSchema,
 } from './auth.schema';
@@ -22,8 +20,6 @@ const authLimiter = rateLimit({
 
 // Public
 authRouter.post('/register/resident', authLimiter, validate(registerResidentSchema), authController.registerResident);
-authRouter.post('/register/barangay', authLimiter, validate(registerBarangaySchema), authController.registerBarangay);
-authRouter.post('/register/employee', authLimiter, validate(registerEmployeeSchema), authController.registerEmployee);
 authRouter.post('/login', authLimiter, validate(loginSchema), authController.login);
 authRouter.post('/refresh', authLimiter, validate(refreshSchema), authController.refresh);
 

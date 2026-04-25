@@ -5,7 +5,7 @@ import { RouteProp, NavigatorScreenParams } from '@react-navigation/native';
 export type AuthStackParamList = {
   Welcome: undefined;
   RoleSelect: undefined;
-  Register: { role: 'RESIDENT' | 'BARANGAY_OFFICIAL' | 'GOVERNMENT_EMPLOYEE' };
+  Register: { role: 'RESIDENT' };
   Login: undefined;
 };
 

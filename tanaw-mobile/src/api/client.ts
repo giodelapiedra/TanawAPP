@@ -2,20 +2,15 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 import { getToken, setToken, clearAuthTokens } from '../utils/storage';
 
-// Production backend on Ubuntu (tanaw-api.tanauancity.com → 72.61.213.48 via Cloudflare).
-// To switch back to local dev, comment out PROD_URL and uncomment LOCAL_URL below.
-const PROD_URL = 'https://tanaw-api.tanauancity.com/api/v1';
+const LOCAL_URL = Platform.OS === 'android'
+  ? 'http://10.0.2.2:3000/api/v1'
+  : 'http://localhost:3000/api/v1';
 
-// Local dev fallback (commented out while pointing to Ubuntu):
-// On Android emulator, 10.0.2.2 maps to host machine's localhost.
-// On web, use localhost directly. On physical device, use LAN IP via EXPO_PUBLIC_API_URL.
-// const LOCAL_URL = Platform.OS === 'android'
-//   ? 'http://10.0.2.2:3000/api/v1'
-//   : 'http://localhost:3000/api/v1';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? LOCAL_URL : '');
 
-const DEFAULT_URL = PROD_URL;
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_URL;
+if (!API_URL) {
+  throw new Error('EXPO_PUBLIC_API_URL must be configured for production builds.');
+}
 
 console.log('[API] Base URL:', API_URL);
 

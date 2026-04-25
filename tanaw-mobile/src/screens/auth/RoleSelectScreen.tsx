@@ -6,12 +6,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { RADIUS } from '../../constants/spacing';
 
-type Role = 'RESIDENT' | 'BARANGAY_OFFICIAL' | 'GOVERNMENT_EMPLOYEE';
+type Role = 'RESIDENT';
 
 const ROLES: { key: Role; icon: keyof typeof Ionicons.glyphMap; iconBg: string; iconColor: string; name: string; desc: string; badge: string }[] = [
   { key: 'RESIDENT', icon: 'home-outline', iconBg: COLORS.GOLD_LIGHT, iconColor: '#D4910A', name: 'City Resident', desc: 'Open for all residents of Tanauan City', badge: 'Resident' },
-  { key: 'BARANGAY_OFFICIAL', icon: 'people-outline', iconBg: COLORS.BLUE_LIGHT, iconColor: COLORS.BLUE, name: 'Barangay Official', desc: 'For Captains, Kagawad, and SK Officials', badge: 'Official' },
-  { key: 'GOVERNMENT_EMPLOYEE', icon: 'business-outline', iconBg: COLORS.SUCCESS_LIGHT, iconColor: COLORS.SUCCESS, name: "Gov't Employee", desc: 'For City Government employees', badge: 'Employee' },
 ];
 
 export default function RoleSelectScreen() {
@@ -51,7 +49,7 @@ export default function RoleSelectScreen() {
 
         <View style={styles.notice}>
           <Ionicons name="information-circle" size={18} color={COLORS.GOLD} />
-          <Text style={styles.noticeText}>Barangay Officials and Gov't Employees need a special code to register.</Text>
+          <Text style={styles.noticeText}>Official and employee accounts are handled by the city admin team.</Text>
         </View>
 
         <TouchableOpacity style={styles.continueBtn} onPress={() => navigation.navigate('Register', { role: selected })} activeOpacity={0.8}>

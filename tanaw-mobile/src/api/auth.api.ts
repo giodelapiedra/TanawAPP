@@ -16,16 +16,6 @@ interface RegisterResidentDto {
   houseNo?: string;
 }
 
-interface RegisterBarangayDto extends RegisterResidentDto {
-  position: string;
-}
-
-interface RegisterEmployeeDto extends RegisterResidentDto {
-  employeeCode: string;
-  department: string;
-  position: string;
-}
-
 interface LoginDto {
   identifier: string;
   password: string;
@@ -44,16 +34,6 @@ interface RefreshResponse {
 
 export async function registerResident(dto: RegisterResidentDto): Promise<User> {
   const res = await apiClient.post('/auth/register/resident', dto);
-  return res.data.data;
-}
-
-export async function registerBarangay(dto: RegisterBarangayDto): Promise<User> {
-  const res = await apiClient.post('/auth/register/barangay', dto);
-  return res.data.data;
-}
-
-export async function registerEmployee(dto: RegisterEmployeeDto): Promise<User> {
-  const res = await apiClient.post('/auth/register/employee', dto);
   return res.data.data;
 }
 
