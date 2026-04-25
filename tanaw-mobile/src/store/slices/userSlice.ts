@@ -1,11 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { User, DigitalIdData } from '../../types/user.types';
+import { DigitalIdData } from '../../types/user.types';
 import { PickedImage } from '../../utils/imagePicker.util';
 import * as usersApi from '../../api/users.api';
-import { logoutThunk, setUser } from './authSlice';
+import { logout, logoutThunk, setUser } from './authSlice';
 
 interface UserState {
-  profile: User | null;
   digitalIdData: DigitalIdData | null;
   isLoading: boolean;
   isUpdating: boolean;
@@ -13,7 +12,6 @@ interface UserState {
 }
 
 const initialState: UserState = {
-  profile: null,
   digitalIdData: null,
   isLoading: false,
   isUpdating: false,
@@ -22,9 +20,11 @@ const initialState: UserState = {
 
 export const fetchProfileThunk = createAsyncThunk(
   'user/fetchProfile',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
-      return await usersApi.getProfile();
+      const profile = await usersApi.getProfile();
+      dispatch(setUser(profile));
+      return profile;
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(e.response?.data?.message ?? 'Failed to load profile');
@@ -34,9 +34,11 @@ export const fetchProfileThunk = createAsyncThunk(
 
 export const updateProfileThunk = createAsyncThunk(
   'user/updateProfile',
-  async (dto: Parameters<typeof usersApi.updateProfile>[0], { rejectWithValue }) => {
+  async (dto: Parameters<typeof usersApi.updateProfile>[0], { dispatch, rejectWithValue }) => {
     try {
-      return await usersApi.updateProfile(dto);
+      const updated = await usersApi.updateProfile(dto);
+      dispatch(setUser(updated));
+      return updated;
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(e.response?.data?.message ?? 'Update failed');
@@ -81,17 +83,18 @@ const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchProfileThunk.pending, (state) => { state.isLoading = true; state.error = null; })
-      .addCase(fetchProfileThunk.fulfilled, (state, action) => { state.isLoading = false; state.profile = action.payload; })
+      .addCase(fetchProfileThunk.fulfilled, (state) => { state.isLoading = false; })
       .addCase(fetchProfileThunk.rejected, (state, action) => { state.isLoading = false; state.error = action.payload as string; })
       .addCase(updateProfileThunk.pending, (state) => { state.isUpdating = true; state.error = null; })
-      .addCase(updateProfileThunk.fulfilled, (state, action) => { state.isUpdating = false; state.profile = action.payload; })
+      .addCase(updateProfileThunk.fulfilled, (state) => { state.isUpdating = false; })
       .addCase(updateProfileThunk.rejected, (state, action) => { state.isUpdating = false; state.error = action.payload as string; })
       .addCase(updateProfilePhotoThunk.pending, (state) => { state.isUpdating = true; state.error = null; })
-      .addCase(updateProfilePhotoThunk.fulfilled, (state, action) => { state.isUpdating = false; state.profile = action.payload; })
+      .addCase(updateProfilePhotoThunk.fulfilled, (state) => { state.isUpdating = false; })
       .addCase(updateProfilePhotoThunk.rejected, (state, action) => { state.isUpdating = false; state.error = action.payload as string; })
       .addCase(fetchDigitalIdThunk.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(fetchDigitalIdThunk.fulfilled, (state, action) => { state.isLoading = false; state.digitalIdData = action.payload; })
       .addCase(fetchDigitalIdThunk.rejected, (state, action) => { state.isLoading = false; state.error = action.payload as string; })
+      .addCase(logout, () => initialState)
       // Clear user data on logout
       .addCase(logoutThunk.fulfilled, () => initialState)
       .addCase(logoutThunk.rejected, () => initialState);

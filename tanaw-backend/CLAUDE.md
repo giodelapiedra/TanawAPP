@@ -1,75 +1,28 @@
-# TANAW One App Backend
+# TANAW Backend Rules
 
-City super-app for Tanauan City, Batangas, Philippines. Phase 1.
+Primary source of truth: [docs/00-engineering-rules.md](../docs/00-engineering-rules.md)
 
-## Stack
+Use this file as a backend-specific quick reference only.
 
-Node.js 20, TypeScript 5, Express 4, PostgreSQL 16, Prisma 5, Redis 7, JWT, bcrypt, Zod.
+## Scope
 
-## Quick Commands
+Node.js / TypeScript backend in `tanaw-backend/`.
+
+## Backend Quick Rules
+
+1. Keep the module split: schema, service, controller, router.
+2. Validate requests at the router boundary.
+3. Use `validate(schema, 'query')` for query validation when applicable.
+4. Controllers translate request to service call; services own business logic and Prisma usage.
+5. Services throw `AppError`; controllers stay free of normal-flow `try/catch`.
+6. Global error middleware must continue handling `AppError`, Prisma errors, JWT errors, and `ZodError`.
+7. Authorization and visibility checks stay on the server.
+8. Protect private user data by default.
+
+## Verification
+
+Preferred local check after meaningful backend changes:
 
 ```bash
-npm run dev              # Start dev server (ts-node + nodemon)
-npm run build            # Compile TypeScript
-npx prisma migrate dev   # Run migrations
-npx prisma generate      # Regenerate Prisma client
-npm run prisma:seed      # Seed barangays + employee codes + counters
-npx tsc --noEmit         # Type-check without emitting
+npm run build
 ```
-
-## Architecture: 4-Layer Module Pattern
-
-Every feature in `src/modules/<feature>/` has exactly 4 files:
-
-1. `feature.schema.ts` - Zod schemas + DTO types only
-2. `feature.service.ts` - Business logic + Prisma only (no req/res)
-3. `feature.controller.ts` - HTTP req/res only (calls service, calls sendSuccess, zero try/catch)
-4. `feature.router.ts` - Route definitions only
-
-## Critical Rules
-
-- Services throw `AppError`. Controllers have ZERO try/catch.
-- `app.ts` first line: `import 'express-async-errors'`. Last middleware: `errorMiddleware`.
-- Every response uses `sendSuccess()` or `sendError()`. Never `res.json()` directly.
-- Every POST/PATCH route: `validate(ZodSchema)` middleware before controller.
-- Never call Prisma inside controllers. Controllers call services.
-- `bcrypt.hash(password, 12)`. Always strip `passwordHash` before returning.
-- Always `import { env } from '../config/env'`. Never `process.env` directly.
-- `prisma.$transaction()` for multi-step writes.
-
-## Database (9 models, 3 enums)
-
-Enums: UserRole (4), UserStatus (4), Gender (2: MALE, FEMALE).
-Models: Barangay, User, Address, RefreshToken, OtpCode, DeviceToken, EmployeeCode, TanawIdCounter, AuditLog.
-
-- Barangay: 47 barangays of Tanauan with unique code (BGY-BOOT-010)
-- User.barangayId is FK to Barangay (not free text)
-- All registrations require barangayCode (validated against Barangay table)
-- EmployeeCode: one-time codes per department, marked as used on registration
-- RefreshToken: DB-stored with revocation (isRevoked)
-- AuditLog: tracks USER_REGISTERED, USER_LOGGED_IN, USER_LOGGED_OUT
-- Login supports multi-identifier: email, phone, or tanawId
-
-## TANAW ID Format
-
-`TAN-{PREFIX}-{YEAR}-{00001}` generated atomically by `src/utils/tanawId.util.ts`.
-
-| Role                | Prefix | Example            |
-|---------------------|--------|--------------------|
-| RESIDENT            | RES    | TAN-RES-2026-00001 |
-| BARANGAY_OFFICIAL   | BGY    | TAN-BGY-2026-00001 |
-| GOVERNMENT_EMPLOYEE | GOV    | TAN-GOV-2026-00001 |
-| SUPER_ADMIN         | ADM    | TAN-ADM-2026-00001 |
-
-## Phase 1 Endpoints
-
-Public: POST register/resident (+barangayCode), register/barangay (+barangayCode +position),
-register/employee (+employeeCode +dept +position), POST login (identifier+password),
-POST refresh, GET health.
-Protected: POST logout, GET/PATCH /users/me, GET /users/me/digital-id, POST /users/device-token.
-
-## Auth Flow
-
-Public: Router -> validate() -> Controller -> Service
-Protected: Router -> authMiddleware -> Controller -> Service
-Role-gated: Router -> authMiddleware -> requireRole() -> Controller -> Service

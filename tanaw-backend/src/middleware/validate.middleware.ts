@@ -2,10 +2,12 @@ import { RequestHandler } from 'express';
 import { ZodSchema, ZodError } from 'zod';
 import { sendError } from '../utils/response.util';
 
-export function validate(schema: ZodSchema): RequestHandler {
+type ValidateTarget = 'body' | 'query' | 'params';
+
+export function validate(schema: ZodSchema, target: ValidateTarget = 'body'): RequestHandler {
   return (req, res, next) => {
     try {
-      req.body = schema.parse(req.body);
+      req[target] = schema.parse(req[target]);
       next();
     } catch (err) {
       if (err instanceof ZodError) {

@@ -9,6 +9,7 @@ import { RADIUS } from '../../constants/spacing';
 import { useAppSelector } from '../../store';
 import { MyGroup, Post } from '../../types/post.types';
 import { AppStackNavigationProp } from '../../types/navigation.types';
+import { getApiErrorMessage } from '../../utils/apiError.util';
 import * as groupsApi from '../../api/groups.api';
 import PostComposer from '../post/PostComposer';
 import PostCard from '../post/PostCard';
@@ -97,13 +98,9 @@ export default function CommunityGroup() {
 
   const handleCreatePost = async (content: string) => {
     if (!group) return;
-    try {
-      const created = await groupsApi.createPost(group.code, content);
-      setPosts((prev) => [created, ...prev]);
-      setGroup({ ...group, postCount: group.postCount + 1 });
-    } catch {
-      Alert.alert('Error', 'Failed to create post');
-    }
+    const created = await groupsApi.createPost(group.code, content);
+    setPosts((prev) => [created, ...prev]);
+    setGroup({ ...group, postCount: group.postCount + 1 });
   };
 
   const handleCreatePostWithImages = async (content: string) => {
@@ -157,7 +154,7 @@ export default function CommunityGroup() {
       setGroup((g) => (g ? { ...g, postCount: Math.max(0, g.postCount - 1) } : g));
       setPostToDelete(null);
     } catch (e: any) {
-      const msg = e?.response?.data?.message ?? e?.message ?? 'Failed to delete post';
+      const msg = getApiErrorMessage(e, 'Failed to delete post');
       console.warn('[deletePost] failed:', msg, e?.response?.data);
       Alert.alert('Error', msg);
     } finally {

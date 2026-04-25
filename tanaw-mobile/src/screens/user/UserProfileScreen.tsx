@@ -185,12 +185,6 @@ export default function UserProfileScreen() {
         )}
 
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>Contact</Text>
-          <InfoRow icon="mail-outline" label="Email" value={profile.email} />
-          <InfoRow icon="call-outline" label="Phone" value={profile.phone} last />
-        </View>
-
-        <View style={styles.infoCard}>
           <Text style={styles.sectionTitle}>About</Text>
           <InfoRow icon="card-outline" label="TANAW ID" value={profile.tanawId} />
           <InfoRow icon="shield-outline" label="Role" value={formatRole(profile.role)} />

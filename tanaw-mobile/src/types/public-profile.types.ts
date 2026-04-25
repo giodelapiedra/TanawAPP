@@ -9,8 +9,6 @@ export interface PublicUserProfile {
   suffix?: string | null;
   role: UserRole;
   status: UserStatus;
-  email: string;
-  phone: string;
   profilePhoto?: string | null;
   createdAt: string;
   barangay?: Pick<Barangay, 'code' | 'name'> | null;

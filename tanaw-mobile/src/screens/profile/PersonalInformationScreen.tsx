@@ -6,7 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppSelector, useAppDispatch } from '../../store';
 import { AppStackNavigationProp } from '../../types/navigation.types';
-import { setUser } from '../../store/slices/authSlice';
 import { fetchProfileThunk, updateProfileThunk } from '../../store/slices/userSlice';
 import { COLORS } from '../../constants/colors';
 import { RADIUS } from '../../constants/spacing';
@@ -28,10 +27,9 @@ export default function PersonalInformationScreen() {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<AppStackNavigationProp>();
   const user = useAppSelector((s) => s.auth.user);
-  const profile = useAppSelector((s) => s.user.profile);
   const isUpdating = useAppSelector((s) => s.user.isUpdating);
   const updateError = useAppSelector((s) => s.user.error);
-  const u = profile ?? user;
+  const u = user;
 
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -66,7 +64,6 @@ export default function PersonalInformationScreen() {
       houseNo: houseNo.trim() || undefined,
     }));
     if (updateProfileThunk.fulfilled.match(result)) {
-      dispatch(setUser(result.payload));
       setIsEditing(false);
     }
   };

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { sendSuccess } from '../../utils/response.util';
-import { listQuerySchema } from './groups.schema';
+import { ListQueryDto } from './groups.schema';
 import * as groupsService from './groups.service';
 
 type CodeReq = Request<{ code: string }>;
@@ -13,7 +13,7 @@ export async function getMyGroup(req: Request, res: Response) {
 }
 
 export async function listPosts(req: CodeReq, res: Response) {
-  const query = listQuerySchema.parse(req.query);
+  const query = req.query as unknown as ListQueryDto;
   const data = await groupsService.listPosts(req.user!.userId, req.params.code, query);
   sendSuccess(res, data, 'Posts retrieved');
 }
@@ -44,7 +44,7 @@ export async function toggleLike(req: PostReq, res: Response) {
 }
 
 export async function listComments(req: PostReq, res: Response) {
-  const query = listQuerySchema.parse(req.query);
+  const query = req.query as unknown as ListQueryDto;
   const data = await groupsService.listComments(req.user!.userId, req.params.postId, query);
   sendSuccess(res, data, 'Comments retrieved');
 }

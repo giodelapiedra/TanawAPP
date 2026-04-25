@@ -3,10 +3,10 @@ import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { sendError } from '../utils/response.util';
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB per image
-const ALLOWED_MIME = 'image/jpeg';
+const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png']);
 
 const imageFileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
-  if (file.mimetype !== ALLOWED_MIME) {
+  if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
     cb(new MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname));
     return;
   }
@@ -27,7 +27,7 @@ function handleMulterErrors(inner: RequestHandler): RequestHandler {
           return sendError(res, 'Image exceeds 8MB limit', 413);
         }
         if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-          return sendError(res, 'Only JPEG images are allowed', 415);
+          return sendError(res, 'Only JPEG and PNG images are allowed', 415);
         }
         return sendError(res, err.message, 400);
       }

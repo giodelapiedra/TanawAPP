@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError, sendError } from '../utils/response.util';
 import { Prisma } from '@prisma/client';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import { ZodError } from 'zod';
 
 export function errorMiddleware(
   err: Error,
@@ -9,10 +10,23 @@ export function errorMiddleware(
   res: Response,
   _next: NextFunction
 ): void {
-  console.error(`[${new Date().toISOString()}] ${req.method} ${req.url} - ${err.message}`);
+  console.error(`[${new Date().toISOString()}] ${req.method} ${req.url}`, {
+    name: err.name,
+    message: err.message,
+    stack: err.stack,
+  });
 
   if (err instanceof AppError) {
     sendError(res, err.message, err.statusCode);
+    return;
+  }
+
+  if (err instanceof ZodError) {
+    const errors = err.errors.map((issue) => ({
+      field: issue.path.join('.'),
+      message: issue.message,
+    }));
+    sendError(res, 'Validation failed', 422, errors);
     return;
   }
 

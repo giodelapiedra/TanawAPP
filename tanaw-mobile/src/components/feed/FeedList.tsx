@@ -18,6 +18,7 @@ import ComingSoonModal from '../common/ComingSoonModal';
 import CityHighlights from '../home/CityHighlights';
 import FeedFilterChips, { FeedFilter } from '../home/FeedFilterChips';
 import { CityHighlight } from '../../constants/cityHighlights';
+import { getApiErrorMessage } from '../../utils/apiError.util';
 import { PickedImage } from '../../utils/imagePicker.util';
 import { listCityVideos } from '../../api/youtube.api';
 import { CITY_NEWS_CHANNEL_URL } from '../../constants/urls';
@@ -139,12 +140,8 @@ export default function FeedList() {
   };
 
   const handleCreatePost = async (content: string, images: PickedImage[]) => {
-    try {
-      const created = await feedApi.createPublicPost(content, images);
-      setPosts((prev) => [created, ...prev]);
-    } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message ?? 'Failed to create post');
-    }
+    const created = await feedApi.createPublicPost(content, images);
+    setPosts((prev) => [created, ...prev]);
   };
 
   const handleLike = useCallback(async (post: Post) => {
@@ -190,7 +187,7 @@ export default function FeedList() {
       setPosts((prev) => prev.filter((p) => p.id !== postToDelete.id));
       setPostToDelete(null);
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message ?? 'Failed to delete post');
+      Alert.alert('Error', getApiErrorMessage(e, 'Failed to delete post'));
     } finally {
       setDeleting(false);
     }

@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/database';
+import { AppError } from '../../utils/response.util';
 import { AUTHOR_SELECT, USER_CARD_SELECT } from '../../utils/prisma-selects.util';
 import * as storageService from '../storage/storage.service';
 import { CreatePublicPostDto, DiscoverUsersQueryDto, ListQueryDto } from './feed.schema';
@@ -43,8 +44,14 @@ export async function createPublicPost(
   dto: CreatePublicPostDto,
   files: Express.Multer.File[] = []
 ) {
+  const content = dto.content.trim();
+
+  if (!content && files.length === 0) {
+    throw new AppError('Post content or at least one image is required', 422);
+  }
+
   if (files.length > 4) {
-    throw new Error('Max 4 images per post');
+    throw new AppError('Max 4 images per post', 422);
   }
 
   const imageKeys: string[] = [];
@@ -58,6 +65,12 @@ export async function createPublicPost(
       files.map((file, i) => storageService.uploadBuffer(imageKeys[i], file.buffer, file.mimetype))
     );
   } catch (err) {
+    console.error('[feed.createPublicPost] image upload failed', {
+      userId,
+      fileCount: files.length,
+      mimeTypes: files.map((file) => file.mimetype),
+      imageKeys,
+    });
     await Promise.all(imageKeys.map((k) => storageService.deleteObject(k).catch(() => undefined)));
     throw err;
   }
@@ -66,7 +79,7 @@ export async function createPublicPost(
     const post = await prisma.post.create({
       data: {
         authorId: userId,
-        content: dto.content,
+        content,
         visibility: 'PUBLIC',
         barangayId: null,
         images: {

@@ -1,52 +1,42 @@
-# TANAW One App Frontend
+# TANAW Mobile Rules
 
-React Native / Expo frontend for Tanauan City super-app. Phase 1.
+Primary source of truth: [docs/00-engineering-rules.md](../docs/00-engineering-rules.md)
 
-## Stack
+Use this file as a mobile-specific quick reference only.
 
-React Native, Expo SDK 52, TypeScript, Redux Toolkit, React Navigation 6,
-Axios, react-hook-form + zod, expo-secure-store, react-native-qrcode-svg.
+## Scope
 
-## Quick Commands
+React Native / Expo app in `tanaw-mobile/`.
+
+## Mobile Quick Rules
+
+1. `auth.user` is the canonical current-user object.
+2. `userSlice` is for auxiliary user-related state such as `digitalIdData`, loading flags, and errors.
+3. All HTTP access goes through `src/api/`.
+4. Shared reusable UI components should not call APIs directly.
+5. New or heavily edited forms should use `react-hook-form` + `zod`.
+6. Typed navigation params live in `src/types/navigation.types.ts`.
+7. Use `user.barangay?.name`, not invented address fields.
+8. Keep privacy boundaries intact; do not render private data from public-profile APIs.
+
+## Current Architecture
+
+```text
+src/constants/
+src/types/
+src/utils/
+src/api/
+src/store/
+src/hooks/
+src/components/
+src/screens/
+src/navigation/
+```
+
+## Verification
+
+Preferred local check after meaningful mobile changes:
 
 ```bash
-npx expo start              # Start Metro bundler
-npx expo start --clear      # Start with cache clear
-npm run android              # Run on Android
-npm run ios                  # Run on iOS (macOS only)
+npx tsc --noEmit
 ```
-
-## Architecture
-
-```
-src/constants/    → COLORS, SPACING, RADIUS, FONT_SIZE (design tokens)
-src/types/        → User, Navigation param types
-src/utils/        → storage (SecureStore), format (date, name, role)
-src/api/          → Axios client with auto-refresh, auth.api, users.api
-src/store/slices/ → authSlice (login/logout/tokens), userSlice (profile/digitalId)
-src/hooks/        → useAuth convenience hook
-src/components/   → common/ (Button, Input, Modal), home/ (ServiceGrid, etc), id-card/
-src/screens/      → auth/ (Welcome, RoleSelect, Register, Login), home/, profile/, etc
-src/navigation/   → RootNavigator, AuthNavigator, MainNavigator
-```
-
-## Frontend Rules
-
-- F1: StyleSheet.create() only. Colors from constants. No inline styles.
-- F2: Typed Props on every component. No `any`. No direct API calls.
-- F3: Redux Toolkit + typed hooks (useAppDispatch, useAppSelector).
-- F4: All API through src/api/. Interceptors handle auth. Functions return unwrapped data.
-- F5: Typed navigation params. Root switches Auth vs Main.
-- F6: Tokens in SecureStore. Login stores, logout clears, app start checks.
-- F7: react-hook-form + zod for all forms.
-- F8: ComingSoonModal for unimplemented features.
-- F9: Backend returns barangay as RELATION OBJECT, not string. Use `user.barangay?.name`.
-- F10: PascalCase screens/components. camelCase hooks/utils/api.
-
-## Backend Connection
-
-Base URL: `EXPO_PUBLIC_API_URL` env var (default: http://localhost:3000/api/v1)
-All responses: `{ success, message, data }` — API functions unwrap to `data`.
-Login uses `identifier` (email/phone/tanawId) not just email.
-Register sends `barangayCode` (e.g., "BGY-SALA-035") not free text.
-Gender: MALE | FEMALE only (dalawa lang, walang iba).

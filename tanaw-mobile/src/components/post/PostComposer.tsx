@@ -9,6 +9,7 @@ import { useAppSelector } from '../../store';
 import { COLORS } from '../../constants/colors';
 import { RADIUS } from '../../constants/spacing';
 import { getFullName, getInitials } from '../../utils/format';
+import { getApiErrorMessage } from '../../utils/apiError.util';
 import { pickMultipleImages, PickedImage } from '../../utils/imagePicker.util';
 import { MAX_IMAGES_PER_POST, MAX_POST_LENGTH, POST_WARN_AT } from '../../constants/posting';
 
@@ -103,7 +104,7 @@ export default function PostComposer({
       setImages([]);
       setOpen(false);
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message ?? 'Failed to create post');
+      Alert.alert('Error', getApiErrorMessage(e, 'Failed to create post'));
     } finally {
       setSubmitting(false);
     }

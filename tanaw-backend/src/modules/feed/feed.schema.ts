@@ -5,7 +5,7 @@ export { cursorPaginationSchema as listQuerySchema } from '../../utils/paginatio
 export type { CursorPaginationDto as ListQueryDto } from '../../utils/pagination.util';
 
 export const createPublicPostSchema = z.object({
-  content: z.string().min(1, 'Post content is required').max(1800, 'Post too long (max ~300 words)').trim(),
+  content: z.string().max(1800, 'Post too long (max ~300 words)').trim().default(''),
 });
 
 export const discoverUsersQuerySchema = cursorPaginationSchema.extend({

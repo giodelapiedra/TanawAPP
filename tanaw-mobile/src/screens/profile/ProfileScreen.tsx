@@ -48,9 +48,8 @@ export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<AppStackNavigationProp>();
   const user = useAppSelector((s) => s.auth.user);
-  const profile = useAppSelector((s) => s.user.profile);
   const isUpdating = useAppSelector((s) => s.user.isUpdating);
-  const u = profile ?? user;
+  const u = user;
 
   const [stubFeature, setStubFeature] = useState<string | null>(null);
   const [counts, setCounts] = useState<{ followers: number; following: number } | null>(null);

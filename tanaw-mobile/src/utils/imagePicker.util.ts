@@ -9,11 +9,11 @@ export interface PickedImage {
   height: number;
 }
 
-const ALLOWED_MIME = 'image/jpeg';
+const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png']);
 
 export class UnsupportedImageTypeError extends Error {
   constructor() {
-    super('Only JPEG images are allowed');
+    super('Only JPEG and PNG images are allowed');
     this.name = 'UnsupportedImageTypeError';
   }
 }
@@ -34,7 +34,7 @@ function inferNameFromUri(uri: string): string {
 
 function toPickedImage(asset: ImagePicker.ImagePickerAsset): PickedImage | null {
   const mimeType = asset.mimeType ?? inferMimeFromUri(asset.uri);
-  if (mimeType !== ALLOWED_MIME) return null;
+  if (!mimeType || !ALLOWED_MIME_TYPES.has(mimeType)) return null;
   return {
     uri: asset.uri,
     mimeType,

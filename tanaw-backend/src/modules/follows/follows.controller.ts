@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { sendSuccess } from '../../utils/response.util';
-import { listQuerySchema } from './follows.schema';
+import { ListQueryDto } from './follows.schema';
 import * as followsService from './follows.service';
 
 type UserIdReq = Request<{ userId: string }>;
@@ -16,25 +16,25 @@ export async function unfollow(req: UserIdReq, res: Response) {
 }
 
 export async function myFollowing(req: Request, res: Response) {
-  const query = listQuerySchema.parse(req.query);
+  const query = req.query as unknown as ListQueryDto;
   const data = await followsService.listFollowing(req.user!.userId, req.user!.userId, query);
   sendSuccess(res, data, 'Following retrieved');
 }
 
 export async function myFollowers(req: Request, res: Response) {
-  const query = listQuerySchema.parse(req.query);
+  const query = req.query as unknown as ListQueryDto;
   const data = await followsService.listFollowers(req.user!.userId, req.user!.userId, query);
   sendSuccess(res, data, 'Followers retrieved');
 }
 
 export async function userFollowing(req: UserIdReq, res: Response) {
-  const query = listQuerySchema.parse(req.query);
+  const query = req.query as unknown as ListQueryDto;
   const data = await followsService.listFollowing(req.params.userId, req.user!.userId, query);
   sendSuccess(res, data, 'Following retrieved');
 }
 
 export async function userFollowers(req: UserIdReq, res: Response) {
-  const query = listQuerySchema.parse(req.query);
+  const query = req.query as unknown as ListQueryDto;
   const data = await followsService.listFollowers(req.params.userId, req.user!.userId, query);
   sendSuccess(res, data, 'Followers retrieved');
 }

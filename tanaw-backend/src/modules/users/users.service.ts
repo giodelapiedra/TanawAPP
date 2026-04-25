@@ -42,7 +42,17 @@ export async function updateProfilePhoto(
   if (!existing) throw new AppError('User not found', 404);
 
   const key = storageService.buildObjectKey('avatars', userId, file.mimetype);
-  await storageService.uploadBuffer(key, file.buffer, file.mimetype);
+  try {
+    await storageService.uploadBuffer(key, file.buffer, file.mimetype);
+  } catch (err) {
+    console.error('[users.updateProfilePhoto] upload failed', {
+      userId,
+      key,
+      mimeType: file.mimetype,
+      sizeBytes: file.buffer.length,
+    });
+    throw err;
+  }
 
   try {
     await prisma.user.update({
@@ -73,8 +83,6 @@ export async function getPublicProfile(viewerId: string, targetId: string) {
       suffix: true,
       role: true,
       status: true,
-      email: true,
-      phone: true,
       profilePhoto: true,
       createdAt: true,
       barangay: { select: { code: true, name: true } },
