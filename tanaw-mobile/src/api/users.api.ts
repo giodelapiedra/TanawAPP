@@ -2,15 +2,7 @@ import apiClient from './client';
 import { User, DigitalIdData } from '../types/user.types';
 import { PublicUserProfile } from '../types/public-profile.types';
 import { PickedImage, toFormDataFile } from '../utils/imagePicker.util';
-
-interface UpdateProfileDto {
-  firstName?: string;
-  middleName?: string;
-  lastName?: string;
-  suffix?: string;
-  street?: string;
-  houseNo?: string;
-}
+import type { UpdateProfileDto } from '../schemas/profile.schema';
 
 export async function getProfile(): Promise<User> {
   const res = await apiClient.get('/users/me');

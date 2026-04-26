@@ -176,6 +176,7 @@ export default function ProfileScreen() {
         email={u.email}
         tanawId={u.tanawId}
         photoUrl={u.profilePhoto}
+        photoVersion={u.updatedAt}
         initials={initials}
         onEditPhoto={handleEditPhoto}
         isUploading={isUpdating}

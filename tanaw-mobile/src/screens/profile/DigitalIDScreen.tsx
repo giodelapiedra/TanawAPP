@@ -56,7 +56,7 @@ export default function DigitalIDScreen() {
           <View style={styles.avatarWrap}>
             {idData.profilePhoto ? (
               <Image
-                key={idData.profilePhoto}
+                key={`${idData.profilePhoto}:${user?.updatedAt ?? ''}`}
                 source={{ uri: idData.profilePhoto }}
                 style={styles.avatar}
               />
@@ -83,7 +83,7 @@ export default function DigitalIDScreen() {
         {/* ID card (with subtle stack backdrop for depth) */}
         <View style={styles.cardStack}>
           <View style={styles.cardShadow} />
-          <TanawIDCard idData={idData} gender={user?.gender} />
+          <TanawIDCard idData={idData} gender={user?.gender} photoVersion={user?.updatedAt} />
         </View>
 
         {/* Enlarge pills */}
@@ -131,7 +131,7 @@ export default function DigitalIDScreen() {
               </View>
             ) : (
               <View style={styles.idModalBox}>
-                <TanawIDCard idData={idData} gender={user?.gender} qrSize={100} />
+                <TanawIDCard idData={idData} gender={user?.gender} qrSize={100} photoVersion={user?.updatedAt} />
               </View>
             )}
           </TouchableOpacity>

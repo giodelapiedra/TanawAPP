@@ -52,7 +52,7 @@ export default function PostComposer({
   const barangayName = user?.barangay?.name;
 
   const effectiveAudience = audience ?? (barangayName ? { icon: 'people' as const, label: `Brgy. ${barangayName}` } : null);
-  const effectiveTriggerText = triggerText ?? 'Share something with your barangay…';
+  const effectiveTriggerText = triggerText ?? 'Share something with your barangay...';
   const effectivePlaceholder = placeholder ?? "What's on your mind?";
 
   const trimmed = content.trim();
@@ -120,7 +120,7 @@ export default function PostComposer({
       >
         {user?.profilePhoto ? (
           <Image
-            key={user.profilePhoto}
+            key={`${user.profilePhoto}:${user.updatedAt}`}
             source={{ uri: user.profilePhoto }}
             style={styles.avatarSmImage}
           />
@@ -186,7 +186,7 @@ export default function PostComposer({
           <View style={styles.authorRow}>
             {user?.profilePhoto ? (
               <Image
-                key={user.profilePhoto}
+                key={`${user.profilePhoto}:${user.updatedAt}`}
                 source={{ uri: user.profilePhoto }}
                 style={styles.avatarLgImage}
               />
@@ -296,21 +296,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     backgroundColor: COLORS.WHITE,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderWidth: 1,
-    borderColor: COLORS.GRAY_100,
+    borderColor: COLORS.BORDER,
     marginBottom: 12,
   },
   triggerPressed: { backgroundColor: COLORS.GRAY_50 },
-  triggerText: { flex: 1, fontSize: 14, color: COLORS.GRAY_500 },
+  triggerText: { flex: 1, fontSize: 15, color: COLORS.GRAY_500 },
   quickActionRow: {
     flexDirection: 'row',
     backgroundColor: COLORS.WHITE,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
-    borderColor: COLORS.GRAY_100,
+    borderColor: COLORS.BORDER,
     marginTop: -6,
     marginBottom: 12,
     paddingVertical: 8,

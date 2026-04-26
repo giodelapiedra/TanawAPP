@@ -56,13 +56,14 @@ export default function HomeScreen() {
         onSearchPress={() => setSearchOpen(true)}
         onNotificationPress={() => navigation.navigate('Notifications')}
         unreadCount={unreadCount}
+        bottomRounded
       >
         <View style={styles.tabs}>
           <TouchableOpacity
             style={[styles.tab, topTab === 'public' && styles.tabActive]}
             onPress={() => setTopTab('public')}
           >
-            <Text style={[styles.tabText, topTab === 'public' && styles.tabTextActive]}>Public</Text>
+            <Text style={[styles.tabText, topTab === 'public' && styles.tabTextActive]}>City Updates</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, topTab === 'community' && styles.tabActive]}
@@ -94,15 +95,25 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.OFF_WHITE },
   body: { flex: 1 },
-  tabs: { flexDirection: 'row', paddingHorizontal: 14, marginTop: 14, marginBottom: 10, gap: 8 },
+  tabs: {
+    flexDirection: 'row',
+    padding: 4,
+    marginHorizontal: 16,
+    marginTop: 14,
+    marginBottom: 10,
+    gap: 4,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+  },
   tab: {
     flex: 1,
-    paddingVertical: 10,
+    minHeight: 44,
+    paddingVertical: 11,
     borderRadius: RADIUS.md,
-    backgroundColor: COLORS.WHITE_15,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   tabActive: { backgroundColor: COLORS.WHITE },
-  tabText: { color: COLORS.WHITE_90, fontSize: 13, fontWeight: '600' },
+  tabText: { color: COLORS.WHITE_90, fontSize: 13, fontWeight: '700' },
   tabTextActive: { color: COLORS.PRIMARY, fontWeight: '700' },
 });

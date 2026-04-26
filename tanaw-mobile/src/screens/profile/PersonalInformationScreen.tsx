@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppSelector, useAppDispatch } from '../../store';
 import { AppStackNavigationProp } from '../../types/navigation.types';
-import { fetchProfileThunk, updateProfileThunk } from '../../store/slices/userSlice';
 import { COLORS } from '../../constants/colors';
 import { RADIUS } from '../../constants/spacing';
 import { getInitials, getFullName, formatRole, formatStatus, formatDate, formatGender } from '../../utils/format';
-import Input from '../../components/common/Input';
+import { RHFInput } from '../../components/common/RHFFields';
 import ErrorMessage from '../../components/common/ErrorMessage';
 import ScreenHeader from '../../components/common/ScreenHeader';
+import { useProfileEdit } from '../../hooks/useProfileEdit';
 
 function InfoRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
   return (
@@ -24,56 +23,18 @@ function InfoRow({ label, value, last }: { label: string; value: string; last?: 
 }
 
 export default function PersonalInformationScreen() {
-  const dispatch = useAppDispatch();
   const navigation = useNavigation<AppStackNavigationProp>();
-  const user = useAppSelector((s) => s.auth.user);
-  const isUpdating = useAppSelector((s) => s.user.isUpdating);
-  const updateError = useAppSelector((s) => s.user.error);
-  const u = user;
+  const {
+    user, form, isEditing, isUpdating, apiError,
+    startEditing, cancelEditing, save,
+  } = useProfileEdit();
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [middleName, setMiddleName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [suffix, setSuffix] = useState('');
-  const [street, setStreet] = useState('');
-  const [houseNo, setHouseNo] = useState('');
-
-  useEffect(() => { dispatch(fetchProfileThunk()); }, [dispatch]);
-
-  const startEditing = () => {
-    if (!u) return;
-    setFirstName(u.firstName);
-    setMiddleName(u.middleName ?? '');
-    setLastName(u.lastName);
-    setSuffix(u.suffix ?? '');
-    setStreet(u.address?.street ?? '');
-    setHouseNo(u.address?.houseNo ?? '');
-    setIsEditing(true);
-  };
-
-  const cancelEditing = () => setIsEditing(false);
-
-  const handleSave = async () => {
-    const result = await dispatch(updateProfileThunk({
-      firstName: firstName.trim(),
-      middleName: middleName.trim() || undefined,
-      lastName: lastName.trim(),
-      suffix: suffix.trim() || undefined,
-      street: street.trim() || undefined,
-      houseNo: houseNo.trim() || undefined,
-    }));
-    if (updateProfileThunk.fulfilled.match(result)) {
-      setIsEditing(false);
-    }
-  };
-
-  if (!u) {
+  if (!user) {
     return <View style={styles.loader}><ActivityIndicator size="large" color={COLORS.PRIMARY} /></View>;
   }
 
-  const initials = getInitials(u.firstName, u.lastName);
-  const fullName = getFullName(u.firstName, u.lastName, u.middleName, u.suffix);
+  const initials = getInitials(user.firstName, user.lastName);
+  const fullName = getFullName(user.firstName, user.lastName, user.middleName, user.suffix);
 
   return (
     <View style={styles.root}>
@@ -95,10 +56,10 @@ export default function PersonalInformationScreen() {
       >
         {/* Profile block */}
         <View style={styles.profileBlock}>
-          {u.profilePhoto ? (
+          {user.profilePhoto ? (
             <Image
-              key={u.profilePhoto}
-              source={{ uri: u.profilePhoto }}
+              key={`${user.profilePhoto}:${user.updatedAt}`}
+              source={{ uri: user.profilePhoto }}
               style={styles.avatarImage}
             />
           ) : (
@@ -109,22 +70,22 @@ export default function PersonalInformationScreen() {
           <Text style={styles.fullName}>{fullName}</Text>
           <View style={styles.tanawIdPill}>
             <Ionicons name="card-outline" size={12} color={COLORS.GOLD} />
-            <Text style={styles.tanawId}>{u.tanawId}</Text>
+            <Text style={styles.tanawId}>{user.tanawId}</Text>
           </View>
           <View style={styles.chipRow}>
             <View style={styles.roleChip}>
-              <Text style={styles.roleChipText}>{formatRole(u.role)}</Text>
+              <Text style={styles.roleChipText}>{formatRole(user.role)}</Text>
             </View>
-            <View style={[styles.statusChip, u.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive]}>
-              <View style={[styles.statusDot, { backgroundColor: u.status === 'ACTIVE' ? COLORS.SUCCESS : COLORS.DANGER }]} />
-              <Text style={[styles.statusChipText, { color: u.status === 'ACTIVE' ? COLORS.SUCCESS : COLORS.DANGER }]}>
-                {formatStatus(u.status)}
+            <View style={[styles.statusChip, user.status === 'ACTIVE' ? styles.statusActive : styles.statusInactive]}>
+              <View style={[styles.statusDot, { backgroundColor: user.status === 'ACTIVE' ? COLORS.SUCCESS : COLORS.DANGER }]} />
+              <Text style={[styles.statusChipText, { color: user.status === 'ACTIVE' ? COLORS.SUCCESS : COLORS.DANGER }]}>
+                {formatStatus(user.status)}
               </Text>
             </View>
           </View>
         </View>
 
-        {updateError && <ErrorMessage message={updateError} />}
+        {apiError && <ErrorMessage message={apiError} />}
 
         {isEditing ? (
           <>
@@ -132,18 +93,18 @@ export default function PersonalInformationScreen() {
               <Text style={styles.sectionTitle}>Edit Personal Information</Text>
               <View style={styles.editRow}>
                 <View style={styles.flex1}>
-                  <Input label="First Name" value={firstName} onChangeText={setFirstName} placeholder="First Name" />
+                  <RHFInput control={form.control} name="firstName" label="First Name" placeholder="First Name" />
                 </View>
                 <View style={styles.flex1ml}>
-                  <Input label="Last Name" value={lastName} onChangeText={setLastName} placeholder="Last Name" />
+                  <RHFInput control={form.control} name="lastName" label="Last Name" placeholder="Last Name" />
                 </View>
               </View>
               <View style={styles.editRow}>
                 <View style={styles.flex2}>
-                  <Input label="Middle Name" value={middleName} onChangeText={setMiddleName} placeholder="Middle Name" />
+                  <RHFInput control={form.control} name="middleName" label="Middle Name" placeholder="Middle Name" />
                 </View>
                 <View style={styles.flex1ml}>
-                  <Input label="Suffix" value={suffix} onChangeText={setSuffix} placeholder="Jr." />
+                  <RHFInput control={form.control} name="suffix" label="Suffix" placeholder="Jr." />
                 </View>
               </View>
             </View>
@@ -152,16 +113,16 @@ export default function PersonalInformationScreen() {
               <Text style={styles.sectionTitle}>Edit Address</Text>
               <View style={styles.editRow}>
                 <View style={styles.flex1}>
-                  <Input label="House No." value={houseNo} onChangeText={setHouseNo} placeholder="123" />
+                  <RHFInput control={form.control} name="houseNo" label="House No." placeholder="123" />
                 </View>
                 <View style={styles.flex2ml}>
-                  <Input label="Street" value={street} onChangeText={setStreet} placeholder="Rizal St." />
+                  <RHFInput control={form.control} name="street" label="Street" placeholder="Rizal St." />
                 </View>
               </View>
             </View>
 
             <View style={styles.editButtons}>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={isUpdating} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.saveBtn} onPress={save} disabled={isUpdating} activeOpacity={0.8}>
                 {isUpdating
                   ? <ActivityIndicator color={COLORS.WHITE} size="small" />
                   : <>
@@ -179,27 +140,27 @@ export default function PersonalInformationScreen() {
           <>
             <View style={styles.infoCard}>
               <Text style={styles.sectionTitle}>Personal Information</Text>
-              <InfoRow label="First Name" value={u.firstName} />
-              <InfoRow label="Last Name" value={u.lastName} />
-              <InfoRow label="Middle Name" value={u.middleName ?? ''} />
-              <InfoRow label="Date of Birth" value={u.birthDate ? formatDate(u.birthDate) : ''} />
-              <InfoRow label="Gender" value={formatGender(u.gender)} last />
+              <InfoRow label="First Name" value={user.firstName} />
+              <InfoRow label="Last Name" value={user.lastName} />
+              <InfoRow label="Middle Name" value={user.middleName ?? ''} />
+              <InfoRow label="Date of Birth" value={user.birthDate ? formatDate(user.birthDate) : ''} />
+              <InfoRow label="Gender" value={formatGender(user.gender)} last />
             </View>
 
             <View style={styles.infoCard}>
               <Text style={styles.sectionTitle}>Address</Text>
-              <InfoRow label="Barangay" value={u.barangay?.name ?? ''} />
-              <InfoRow label="House / Street" value={[u.address?.houseNo, u.address?.street].filter(Boolean).join(' ') || 'N/A'} />
-              <InfoRow label="City" value={u.address?.city ?? 'Tanauan City'} />
-              <InfoRow label="Province" value={u.address?.province ?? 'Batangas'} />
-              <InfoRow label="Zip Code" value={u.address?.zipCode ?? '4232'} last />
+              <InfoRow label="Barangay" value={user.barangay?.name ?? ''} />
+              <InfoRow label="House / Street" value={[user.address?.houseNo, user.address?.street].filter(Boolean).join(' ') || 'N/A'} />
+              <InfoRow label="City" value={user.address?.city ?? 'Tanauan City'} />
+              <InfoRow label="Province" value={user.address?.province ?? 'Batangas'} />
+              <InfoRow label="Zip Code" value={user.address?.zipCode ?? '4232'} last />
             </View>
 
             <View style={styles.infoCard}>
               <Text style={styles.sectionTitle}>Account</Text>
-              <InfoRow label="Email" value={u.email} />
-              <InfoRow label="Phone Number" value={u.phone} />
-              <InfoRow label="Member Since" value={formatDate(u.createdAt)} last />
+              <InfoRow label="Email" value={user.email} />
+              <InfoRow label="Phone Number" value={user.phone} />
+              <InfoRow label="Member Since" value={formatDate(user.createdAt)} last />
             </View>
           </>
         )}

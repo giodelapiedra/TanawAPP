@@ -73,7 +73,7 @@ export default function ServicesScreen() {
             <ServiceSearchBar
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search services like Documents, Permits…"
+              placeholder="Search permits, documents, appointments"
             />
           </View>
           <TouchableOpacity
@@ -82,7 +82,7 @@ export default function ServicesScreen() {
             accessibilityRole="button"
             accessibilityLabel="Filter services"
           >
-            <Ionicons name="options-outline" size={20} color={COLORS.WHITE} />
+            <Ionicons name="options-outline" size={20} color={COLORS.PRIMARY} />
           </TouchableOpacity>
         </View>
 
@@ -151,19 +151,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     marginHorizontal: 16,
-    marginTop: -24,
-    marginBottom: 20,
+    marginTop: -30,
+    marginBottom: 18,
     paddingHorizontal: 10,
     paddingVertical: 10,
     backgroundColor: COLORS.WHITE,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
     elevation: 6,
     boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.12)',
   },
   searchField: { flex: 1 },
   filterBtn: {
     width: 44, height: 44, borderRadius: RADIUS.md,
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: COLORS.PRIMARY_LIGHT,
     justifyContent: 'center', alignItems: 'center',
   },
   section: { marginBottom: 20 },

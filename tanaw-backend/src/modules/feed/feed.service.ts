@@ -79,7 +79,7 @@ export async function listMyFeed(userId: string, query: ListQueryDto) {
         { author: { followers: { some: { followerId: userId } } } },
       ],
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     take: query.limit + 1,
     ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
     include: {
@@ -118,7 +118,7 @@ export async function discoverUsers(viewerId: string, query: DiscoverUsersQueryD
 
   const users = await prisma.user.findMany({
     where,
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     take: query.limit + 1,
     ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
     select: USER_CARD_SELECT,

@@ -43,11 +43,11 @@ export default function ExploreServicesGrid({ items, onItemPress, onViewAllPress
             item.featured ? (
               <TouchableOpacity
                 key={item.key}
-                style={[styles.featuredTile, { backgroundColor: item.tint }]}
+                style={styles.featuredTile}
                 onPress={() => onItemPress(item)}
                 activeOpacity={0.85}
               >
-                <View style={[styles.featuredIcon, { backgroundColor: COLORS.WHITE }]}>
+                <View style={[styles.featuredIcon, { backgroundColor: item.tint }]}>
                   <Ionicons name={item.icon} size={30} color={item.iconColor} />
                 </View>
                 <View style={styles.featuredCopy}>
@@ -59,11 +59,13 @@ export default function ExploreServicesGrid({ items, onItemPress, onViewAllPress
             ) : (
               <TouchableOpacity
                 key={item.key}
-                style={[styles.tile, { backgroundColor: item.tint }]}
+                style={styles.tile}
                 onPress={() => onItemPress(item)}
                 activeOpacity={0.85}
               >
-                <Ionicons name={item.icon} size={24} color={item.iconColor} style={styles.tileIcon} />
+                <View style={[styles.tileIconBox, { backgroundColor: item.tint }]}>
+                  <Ionicons name={item.icon} size={22} color={item.iconColor} />
+                </View>
                 <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
                 <Text style={styles.subtitle} numberOfLines={2}>{item.subtitle}</Text>
               </TouchableOpacity>
@@ -100,13 +102,23 @@ const styles = StyleSheet.create({
   tile: {
     width: TILE_WIDTH_HALF,
     padding: 12,
-    borderRadius: RADIUS.md,
-    minHeight: 108,
+    borderRadius: RADIUS.lg,
+    minHeight: 122,
     gap: 6,
+    backgroundColor: COLORS.WHITE,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
   },
-  tileIcon: { marginBottom: 2 },
-  name: { color: COLORS.GRAY_900, fontSize: 12, fontWeight: '800' },
-  subtitle: { color: COLORS.GRAY_500, fontSize: 10, lineHeight: 13 },
+  tileIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  name: { color: COLORS.GRAY_900, fontSize: 13, fontWeight: '800' },
+  subtitle: { color: COLORS.GRAY_500, fontSize: 11, lineHeight: 15 },
 
   // Featured (full width) tile
   featuredTile: {
@@ -115,7 +127,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     padding: 14,
-    borderRadius: RADIUS.md,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.WHITE,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
   },
   featuredIcon: {
     width: 52, height: 52, borderRadius: 16,

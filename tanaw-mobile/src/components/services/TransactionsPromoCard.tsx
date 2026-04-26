@@ -19,8 +19,9 @@ export default function TransactionsPromoCard({ activeCount, onPress }: Props) {
       accessibilityLabel={`View ${activeCount} active transaction requests`}
     >
       <View style={styles.copy}>
+        <Text style={styles.eyebrow}>Request tracker</Text>
         <Text style={styles.title}>My Transactions</Text>
-        <Text style={styles.subtitle}>Track your requests and view your transaction status.</Text>
+        <Text style={styles.subtitle}>Check pending forms, payments, and appointment updates.</Text>
         <View style={styles.cta}>
           <Text style={styles.ctaText}>View Transactions</Text>
           <Ionicons name="chevron-forward" size={14} color={COLORS.WHITE} />
@@ -43,11 +44,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     padding: 16,
     borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.BLUE_LIGHT,
+    backgroundColor: COLORS.WHITE,
     borderWidth: 1,
-    borderColor: COLORS.GRAY_100,
+    borderColor: COLORS.BORDER,
   },
   copy: { flex: 1, gap: 6 },
+  eyebrow: { color: COLORS.PRIMARY, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6 },
   title: { color: COLORS.GRAY_900, fontSize: 16, fontWeight: '800' },
   subtitle: { color: COLORS.GRAY_500, fontSize: 12, lineHeight: 17 },
   cta: {
@@ -56,7 +58,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: COLORS.BLUE,
+    backgroundColor: COLORS.PRIMARY,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: RADIUS.md,
@@ -68,6 +70,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: COLORS.GRAY_100,
   },
-  badgeNumber: { color: COLORS.BLUE, fontSize: 26, fontWeight: '900' },
+  badgeNumber: { color: COLORS.PRIMARY, fontSize: 26, fontWeight: '900' },
   badgeLabel: { color: COLORS.GRAY_500, fontSize: 10, fontWeight: '600', textAlign: 'center', marginTop: 2, lineHeight: 12 },
 });

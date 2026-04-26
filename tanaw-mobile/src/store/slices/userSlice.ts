@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { RootState } from '..';
 import { DigitalIdData } from '../../types/user.types';
 import { PickedImage } from '../../utils/imagePicker.util';
 import * as usersApi from '../../api/users.api';
@@ -21,10 +22,16 @@ const initialState: UserState = {
 
 export const fetchProfileThunk = createAsyncThunk(
   'user/fetchProfile',
-  async (_, { dispatch, rejectWithValue }) => {
+  async (_, { dispatch, getState, rejectWithValue }) => {
     try {
       const profile = await usersApi.getProfile();
-      dispatch(setUser(profile));
+      const current = (getState() as RootState).auth.user;
+      const currentUpdatedAt = current?.updatedAt ? new Date(current.updatedAt).getTime() : 0;
+      const profileUpdatedAt = profile.updatedAt ? new Date(profile.updatedAt).getTime() : 0;
+
+      if (!current || profileUpdatedAt >= currentUpdatedAt) {
+        dispatch(setUser(profile));
+      }
       return profile;
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
@@ -33,16 +40,22 @@ export const fetchProfileThunk = createAsyncThunk(
   }
 );
 
-export const updateProfileThunk = createAsyncThunk(
+// Reject with `ResolvedApiError` so the screen gets the same timeout/413/422
+// awareness that the photo upload thunk already provides. The reducer extracts
+// `.message` so consumers reading `state.error: string | null` keep working.
+export const updateProfileThunk = createAsyncThunk<
+  Awaited<ReturnType<typeof usersApi.updateProfile>>,
+  Parameters<typeof usersApi.updateProfile>[0],
+  { rejectValue: ResolvedApiError }
+>(
   'user/updateProfile',
-  async (dto: Parameters<typeof usersApi.updateProfile>[0], { dispatch, rejectWithValue }) => {
+  async (dto, { dispatch, rejectWithValue }) => {
     try {
       const updated = await usersApi.updateProfile(dto);
       dispatch(setUser(updated));
       return updated;
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } } };
-      return rejectWithValue(e.response?.data?.message ?? 'Update failed');
+      return rejectWithValue(resolveApiError(err, 'Update failed'));
     }
   }
 );
@@ -61,7 +74,9 @@ export const updateProfilePhotoThunk = createAsyncThunk<
       const updated = await usersApi.updateProfilePhoto(image);
       // Mirror into auth slice so any component selecting `auth.user` gets the new photo.
       dispatch(setUser(updated));
-      return updated;
+      const fresh = await usersApi.getProfile().catch(() => updated);
+      dispatch(setUser(fresh));
+      return fresh;
     } catch (err: unknown) {
       return rejectWithValue(resolveApiError(err, 'Upload failed'));
     }
@@ -94,7 +109,10 @@ const userSlice = createSlice({
       .addCase(fetchProfileThunk.rejected, (state, action) => { state.isLoading = false; state.error = action.payload as string; })
       .addCase(updateProfileThunk.pending, (state) => { state.isUpdating = true; state.error = null; })
       .addCase(updateProfileThunk.fulfilled, (state) => { state.isUpdating = false; })
-      .addCase(updateProfileThunk.rejected, (state, action) => { state.isUpdating = false; state.error = action.payload as string; })
+      .addCase(updateProfileThunk.rejected, (state, action) => {
+        state.isUpdating = false;
+        state.error = action.payload?.message ?? action.error?.message ?? null;
+      })
       .addCase(updateProfilePhotoThunk.pending, (state) => { state.isUpdating = true; state.error = null; })
       .addCase(updateProfilePhotoThunk.fulfilled, (state) => { state.isUpdating = false; })
       .addCase(updateProfilePhotoThunk.rejected, (state, action) => {

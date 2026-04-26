@@ -21,7 +21,7 @@ export default function AuthNavigator() {
       <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="RoleSelect" component={RoleSelectScreen} options={{ title: 'Choose Role' }} />
       <Stack.Screen name="Register" component={RegisterScreen} options={{ title: 'Register' }} />
-      <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Login' }} />
+      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

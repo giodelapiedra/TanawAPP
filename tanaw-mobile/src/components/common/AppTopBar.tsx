@@ -7,29 +7,14 @@ import { formatBadgeCount } from '../../utils/format-badge.util';
 import BrandAccent from './BrandAccent';
 
 interface Props {
-  /** Optional search icon handler. When omitted, the search button is hidden. */
   onSearchPress?: () => void;
-  /** Optional bell handler. When omitted, the bell is hidden. */
   onNotificationPress?: () => void;
-  /** Unread notifications count — renders a badge on the bell when > 0. */
   unreadCount?: number;
-  /** Optional slot rendered below the brand row (e.g., Public/Community tabs on Home). */
   children?: ReactNode;
-  /** When true, rounds the bottom corners so content below can overlap cleanly. */
   bottomRounded?: boolean;
-  /** Extra padding at the bottom — useful when the next element overlaps upward. */
   extraBottomPadding?: number;
 }
 
-/**
- * Canonical top bar shared across tab screens (Home, Services, …).
- *
- * Renders: red brand background + gold accent + Tanauan seal + "TANAW One Super App"
- * + optional search/bell actions + optional children slot for tab-specific controls.
- *
- * To keep the header consistent, do NOT recreate this structure inside a screen —
- * always compose with this component and pass slots via props/children.
- */
 export default function AppTopBar({
   onSearchPress,
   onNotificationPress,
@@ -55,7 +40,7 @@ export default function AppTopBar({
               style={styles.seal}
               resizeMode="contain"
             />
-            <View>
+            <View style={styles.brandCopy}>
               <Text style={styles.title}>TANAW One Super App</Text>
               <Text style={styles.subtitle}>CITY OF TANAUAN</Text>
             </View>
@@ -101,7 +86,7 @@ export default function AppTopBar({
 const styles = StyleSheet.create({
   wrap: {
     backgroundColor: COLORS.PRIMARY,
-    paddingBottom: 4,
+    paddingBottom: 8,
     overflow: 'hidden',
   },
   wrapRounded: {
@@ -114,24 +99,36 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 8,
+    paddingBottom: 2,
+    gap: 12,
   },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  seal: { width: 32, height: 32, borderRadius: 16 },
+  brandRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  brandCopy: { flex: 1 },
+  seal: { width: 38, height: 38, borderRadius: 19 },
   title: { color: COLORS.WHITE, fontSize: 16, fontWeight: '800' },
-  subtitle: { color: COLORS.WHITE, fontSize: 9, opacity: 0.65, letterSpacing: 1.5 },
+  subtitle: { color: COLORS.WHITE, fontSize: 10, opacity: 0.78, letterSpacing: 1.2, marginTop: 1 },
   actions: { flexDirection: 'row', gap: 6 },
   iconBtn: {
-    width: 30, height: 30,
-    justifyContent: 'center', alignItems: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   badge: {
     position: 'absolute',
-    top: -4, right: -4,
-    minWidth: 16, height: 16, borderRadius: 8,
+    top: 4,
+    right: 4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: COLORS.DANGER,
-    justifyContent: 'center', alignItems: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 4,
-    borderWidth: 1.5, borderColor: COLORS.PRIMARY,
+    borderWidth: 1.5,
+    borderColor: COLORS.PRIMARY,
   },
   badgeText: { color: COLORS.WHITE, fontSize: 9, fontWeight: '700' },
 });

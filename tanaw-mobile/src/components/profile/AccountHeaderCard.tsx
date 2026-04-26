@@ -10,6 +10,7 @@ interface Props {
   email: string;
   tanawId: string;
   photoUrl?: string | null;
+  photoVersion?: string | null;
   initials: string;
   onEditPhoto?: () => void;
   isUploading?: boolean;
@@ -24,7 +25,7 @@ const fmtCount = (n: number | null | undefined): string =>
   n == null ? '—' : n >= 1000 ? `${(n / 1000).toFixed(n < 10000 ? 1 : 0)}k` : String(n);
 
 export default function AccountHeaderCard({
-  fullName, phone, email, tanawId, photoUrl, initials, onEditPhoto, isUploading,
+  fullName, phone, email, tanawId, photoUrl, photoVersion, initials, onEditPhoto, isUploading,
   followerCount, followingCount, onFollowersPress, onFollowingPress,
 }: Props) {
   const showStats =
@@ -61,7 +62,7 @@ export default function AccountHeaderCard({
           accessibilityLabel="Change profile photo"
         >
           {photoUrl ? (
-            <Image key={photoUrl} source={{ uri: photoUrl }} style={styles.avatar} />
+            <Image key={`${photoUrl}:${photoVersion ?? ''}`} source={{ uri: photoUrl }} style={styles.avatar} />
           ) : (
             <View style={styles.avatarFallback}>
               <Text style={styles.avatarInitials}>{initials}</Text>

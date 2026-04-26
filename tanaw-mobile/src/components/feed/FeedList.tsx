@@ -261,7 +261,7 @@ export default function FeedList() {
             />
             <PostComposer
               onSubmit={handleCreatePost}
-              triggerText="What's on your mind, Tanauan?"
+              triggerText="Share an update or concern"
               audience={{ icon: 'globe', label: 'Public' }}
               quickActions={quickActions}
             />
@@ -324,7 +324,7 @@ export default function FeedList() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 14, paddingBottom: 100 },
+  list: { padding: 16, paddingBottom: 100 },
   center: { paddingVertical: 60, alignItems: 'center' },
   errorBox: { paddingVertical: 60, alignItems: 'center', paddingHorizontal: 32 },
   errorText: { color: COLORS.GRAY_500, fontSize: 13, textAlign: 'center', marginTop: 10 },

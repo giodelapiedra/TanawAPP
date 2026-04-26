@@ -31,8 +31,8 @@ export default function CityHighlights({ items, onItemPress, onSeeAllPress }: Pr
             <Ionicons name="megaphone" size={18} color={COLORS.PRIMARY} />
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.title}>City Highlights</Text>
-            <Text style={styles.subtitle}>Stay informed with the latest news and updates.</Text>
+            <Text style={styles.title}>Official City Updates</Text>
+            <Text style={styles.subtitle}>News and announcements from the city government.</Text>
           </View>
         </View>
         {onSeeAllPress && (
@@ -76,9 +76,9 @@ export default function CityHighlights({ items, onItemPress, onSeeAllPress }: Pr
 const styles = StyleSheet.create({
   wrap: {
     backgroundColor: COLORS.WHITE,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
-    borderColor: COLORS.GRAY_100,
+    borderColor: COLORS.BORDER,
     paddingTop: 14,
     paddingBottom: 14,
     marginBottom: 12,

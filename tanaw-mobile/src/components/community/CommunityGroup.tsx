@@ -201,9 +201,10 @@ export default function CommunityGroup() {
                 <Ionicons name="people" size={22} color={COLORS.PRIMARY} />
               </View>
               <View style={styles.groupInfo}>
+                <Text style={styles.groupEyebrow}>Barangay community</Text>
                 <Text style={styles.groupName}>Brgy. {group.name}</Text>
                 <Text style={styles.groupMeta}>
-                  {group.memberCount.toLocaleString()} members · {group.postCount.toLocaleString()} posts
+                  {group.memberCount.toLocaleString()} members - {group.postCount.toLocaleString()} posts
                 </Text>
               </View>
               <TouchableOpacity
@@ -275,7 +276,7 @@ export default function CommunityGroup() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 14, paddingBottom: 100 },
+  list: { padding: 16, paddingBottom: 100 },
   loading: { paddingVertical: 60, alignItems: 'center' },
   errorBox: { paddingVertical: 60, alignItems: 'center', paddingHorizontal: 32 },
   errorText: { color: COLORS.GRAY_500, fontSize: 13, textAlign: 'center', marginTop: 10 },
@@ -284,25 +285,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     backgroundColor: COLORS.WHITE,
-    borderRadius: RADIUS.lg,
-    padding: 14,
+    borderRadius: RADIUS.xl,
+    padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.GRAY_100,
+    borderColor: COLORS.BORDER,
   },
   groupIcon: {
-    width: 46, height: 46, borderRadius: 23,
+    width: 48, height: 48, borderRadius: 16,
     backgroundColor: COLORS.PRIMARY_LIGHT,
     justifyContent: 'center', alignItems: 'center',
   },
   groupInfo: { flex: 1 },
-  groupName: { fontSize: 15, fontWeight: '700', color: COLORS.GRAY_900 },
-  groupMeta: { fontSize: 12, color: COLORS.GRAY_500, marginTop: 2 },
+  groupEyebrow: { color: COLORS.PRIMARY, fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6 },
+  groupName: { fontSize: 16, fontWeight: '800', color: COLORS.GRAY_900, marginTop: 2 },
+  groupMeta: { fontSize: 12, color: COLORS.GRAY_500, marginTop: 3 },
   rulesLink: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: COLORS.PRIMARY_LIGHT,
-    paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: 8,
+    minHeight: 36,
+    paddingHorizontal: 10,
+    borderRadius: RADIUS.full,
   },
   rulesLinkText: { color: COLORS.PRIMARY, fontSize: 11, fontWeight: '700' },
   emptyBox: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32 },

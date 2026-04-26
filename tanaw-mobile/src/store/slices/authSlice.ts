@@ -3,6 +3,7 @@ import { User } from '../../types/user.types';
 import * as authApi from '../../api/auth.api';
 import * as usersApi from '../../api/users.api';
 import { setToken, getToken, clearAuthTokens } from '../../utils/storage';
+import type { RegisterResidentDto } from '../../schemas/auth.schema';
 
 interface AuthState {
   user: User | null;
@@ -36,6 +37,27 @@ export const loginThunk = createAsyncThunk(
       const e = err as { response?: { data?: { message?: string } }; message?: string };
       const msg = e.response?.data?.message
         ?? (e.message === 'Network Error' ? 'Cannot connect to server. Make sure the backend is running.' : 'Login failed');
+      return rejectWithValue(msg);
+    }
+  }
+);
+
+// Backend returns the created User but no tokens — registration does not
+// authenticate the session. The RegisterScreen shows the new TANAW ID and
+// the user logs in afterwards.
+export const registerThunk = createAsyncThunk<
+  User,
+  RegisterResidentDto,
+  { rejectValue: string }
+>(
+  'auth/register',
+  async (dto, { rejectWithValue }) => {
+    try {
+      return await authApi.registerResident(dto);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg = e.response?.data?.message
+        ?? (e.message === 'Network Error' ? 'Cannot connect to server. Make sure the backend is running.' : 'Registration failed');
       return rejectWithValue(msg);
     }
   }
@@ -112,6 +134,19 @@ const authSlice = createSlice({
       .addCase(loginThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      // Register — surfaces isLoading so the screen's submit button can show
+      // a spinner. Does NOT set isAuthenticated; the user logs in afterwards.
+      .addCase(registerThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerThunk.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(registerThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = (action.payload as string) ?? null;
       })
       // Logout — ALWAYS reset state whether fulfilled or rejected
       .addCase(logoutThunk.fulfilled, () => loggedOutState)

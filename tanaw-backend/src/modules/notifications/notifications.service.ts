@@ -32,7 +32,7 @@ export async function createNotification(input: CreateNotificationInput) {
 export async function listForUser(userId: string, query: ListNotificationsQueryDto) {
   const rows = await prisma.notification.findMany({
     where: { userId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     take: query.limit + 1,
     ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
     include: { actor: { select: ACTOR_SELECT } },

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -6,13 +6,9 @@ import { AuthNavigationProp } from '../../types/navigation.types';
 import { COLORS } from '../../constants/colors';
 import { RADIUS } from '../../constants/spacing';
 import { BARANGAYS } from '../../constants/barangays';
-import Input from '../../components/common/Input';
-import Dropdown from '../../components/common/Dropdown';
-import DatePicker from '../../components/common/DatePicker';
+import { RHFInput, RHFDropdown, RHFDatePicker } from '../../components/common/RHFFields';
 import ErrorMessage from '../../components/common/ErrorMessage';
-import * as authApi from '../../api/auth.api';
-
-type Gender = 'MALE' | 'FEMALE';
+import { useRegistrationFlow } from '../../hooks/useRegistrationFlow';
 
 const GENDER_OPTIONS = [
   { label: 'Male', value: 'MALE' },
@@ -24,82 +20,18 @@ const BARANGAY_OPTIONS = BARANGAYS.map((b) => ({
   value: b.code,
 }));
 
+const STEP_TITLES = ['Personal Info', 'Contact & Address', 'Password'];
+
 export default function RegisterScreen() {
   const navigation = useNavigation<AuthNavigationProp>();
+  const {
+    form, step, goNext, goBack, submit,
+    successTanawId, apiError, clearApiError, isSubmitting,
+  } = useRegistrationFlow();
 
-  const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [successTanawId, setSuccessTanawId] = useState<string | null>(null);
-
-  // Step 1
-  const [firstName, setFirstName] = useState('');
-  const [middleName, setMiddleName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [suffix, setSuffix] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [gender, setGender] = useState('');
-
-  // Step 2
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [barangayCode, setBarangayCode] = useState('');
-  const [houseNo, setHouseNo] = useState('');
-  const [street, setStreet] = useState('');
-
-  // Step 3
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const validate = (): boolean => {
-    const e: Record<string, string> = {};
-    if (step === 1) {
-      if (!firstName.trim()) e.firstName = 'Required';
-      if (!lastName.trim()) e.lastName = 'Required';
-      if (!birthDate || birthDate.includes('--') || birthDate.split('-').some((p) => !p)) e.birthDate = 'Select complete date';
-      if (!gender) e.gender = 'Select gender';
-    } else if (step === 2) {
-      if (!email.trim() || !email.includes('@')) e.email = 'Enter a valid email';
-      if (!/^09\d{9}$/.test(phone)) e.phone = 'Format: 09XXXXXXXXX';
-      if (!barangayCode) e.barangayCode = 'Select your barangay';
-    } else {
-      if (password.length < 8) e.password = 'Minimum 8 characters';
-      if (password !== confirmPassword) e.confirmPassword = 'Passwords do not match';
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleNext = () => { if (validate()) setStep(step + 1); };
-  const handleBack = () => { if (step > 1) setStep(step - 1); else navigation.goBack(); };
-
-  const handleSubmit = async () => {
-    if (!validate()) return;
-    setIsLoading(true);
-    setApiError(null);
-    try {
-      const base = {
-        email, phone, password, firstName, lastName,
-        middleName: middleName || undefined,
-        suffix: suffix || undefined,
-        birthDate, gender: gender as Gender, barangayCode,
-        street: street || undefined, houseNo: houseNo || undefined,
-      };
-      const result = await authApi.registerResident(base);
-      setSuccessTanawId(result.tanawId);
-    } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } }; message?: string };
-      if (e.response?.data?.message) {
-        setApiError(e.response.data.message);
-      } else if (e.message === 'Network Error') {
-        setApiError('Cannot connect to server. Make sure the backend is running.');
-      } else {
-        setApiError(e.message || 'Registration failed. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
+  const handleBack = () => {
+    if (step > 1) goBack();
+    else navigation.goBack();
   };
 
   // ── Success View ──
@@ -127,7 +59,6 @@ export default function RegisterScreen() {
     );
   }
 
-  const stepTitles = ['Personal Info', 'Contact & Address', 'Password'];
   const progressColors = [
     step >= 1 ? COLORS.WHITE_90 : COLORS.WHITE_25,
     step >= 2 ? COLORS.WHITE_90 : COLORS.WHITE_25,
@@ -142,7 +73,7 @@ export default function RegisterScreen() {
           <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={18} color={COLORS.WHITE} />
           </TouchableOpacity>
-          <Text style={styles.stepTitle}>{stepTitles[step - 1]}</Text>
+          <Text style={styles.stepTitle}>{STEP_TITLES[step - 1]}</Text>
           <View style={{ width: 32 }} />
         </View>
         <View style={styles.progressBar}>
@@ -154,40 +85,34 @@ export default function RegisterScreen() {
       </View>
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} keyboardShouldPersistTaps="handled">
-        <ErrorMessage message={apiError} onDismiss={() => setApiError(null)} />
+        <ErrorMessage message={apiError} onDismiss={clearApiError} />
 
         {/* ── Step 1: Personal Info ── */}
         {step === 1 && (
           <>
             <View style={styles.row}>
               <View style={styles.flex2}>
-                <Input label="First Name" value={firstName} onChangeText={setFirstName} error={errors.firstName} placeholder="Juan" />
+                <RHFInput control={form.control} name="firstName" label="First Name" placeholder="Juan" />
               </View>
               <View style={styles.flex1ml}>
-                <Input label="Middle Name" value={middleName} onChangeText={setMiddleName} placeholder="M." />
+                <RHFInput control={form.control} name="middleName" label="Middle Name" placeholder="M." />
               </View>
             </View>
             <View style={styles.row}>
               <View style={styles.flex2}>
-                <Input label="Last Name" value={lastName} onChangeText={setLastName} error={errors.lastName} placeholder="Dela Cruz" />
+                <RHFInput control={form.control} name="lastName" label="Last Name" placeholder="Dela Cruz" />
               </View>
               <View style={styles.flex1ml}>
-                <Input label="Suffix" value={suffix} onChangeText={setSuffix} placeholder="Jr." />
+                <RHFInput control={form.control} name="suffix" label="Suffix" placeholder="Jr." />
               </View>
             </View>
-            <DatePicker
-              label="Date of Birth"
-              value={birthDate}
-              onChange={setBirthDate}
-              error={errors.birthDate}
-            />
-            <Dropdown
+            <RHFDatePicker control={form.control} name="birthDate" label="Date of Birth" />
+            <RHFDropdown
+              control={form.control}
+              name="gender"
               label="Gender"
               placeholder="Select gender"
               options={GENDER_OPTIONS}
-              value={gender}
-              onSelect={(v) => { setGender(v); setErrors((e) => { const n = { ...e }; delete n.gender; return n; }); }}
-              error={errors.gender}
             />
           </>
         )}
@@ -195,24 +120,36 @@ export default function RegisterScreen() {
         {/* ── Step 2: Contact & Address ── */}
         {step === 2 && (
           <>
-            <Input label="Email" value={email} onChangeText={setEmail} error={errors.email} placeholder="juan@email.com" keyboardType="email-address" autoCapitalize="none" />
-            <Input label="Phone Number" value={phone} onChangeText={setPhone} error={errors.phone} placeholder="09171234567" keyboardType="phone-pad" />
-            <Dropdown
+            <RHFInput
+              control={form.control}
+              name="email"
+              label="Email"
+              placeholder="juan@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <RHFInput
+              control={form.control}
+              name="phone"
+              label="Phone Number"
+              placeholder="09171234567"
+              keyboardType="phone-pad"
+            />
+            <RHFDropdown
+              control={form.control}
+              name="barangayCode"
               label="Barangay"
               placeholder="Select your barangay"
               options={BARANGAY_OPTIONS}
-              value={barangayCode}
-              onSelect={(v) => { setBarangayCode(v); setErrors((e) => { const n = { ...e }; delete n.barangayCode; return n; }); }}
-              error={errors.barangayCode}
               searchable
               searchPlaceholder="Search barangay..."
             />
             <View style={styles.row}>
               <View style={styles.flex1}>
-                <Input label="House No." value={houseNo} onChangeText={setHouseNo} placeholder="123" />
+                <RHFInput control={form.control} name="houseNo" label="House No." placeholder="123" />
               </View>
               <View style={styles.flex2ml}>
-                <Input label="Street" value={street} onChangeText={setStreet} placeholder="Rizal St." />
+                <RHFInput control={form.control} name="street" label="Street" placeholder="Rizal St." />
               </View>
             </View>
             <View style={styles.infoBox}>
@@ -224,8 +161,24 @@ export default function RegisterScreen() {
         {/* ── Step 3: Password ── */}
         {step === 3 && (
           <>
-            <Input label="Password" value={password} onChangeText={setPassword} error={errors.password} placeholder="Minimum 8 characters" secureTextEntry />
-            <Input label="Confirm Password" value={confirmPassword} onChangeText={setConfirmPassword} error={errors.confirmPassword} placeholder="Re-enter password" secureTextEntry />
+            <RHFInput
+              control={form.control}
+              name="password"
+              label="Password"
+              placeholder="Minimum 8 characters"
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <RHFInput
+              control={form.control}
+              name="confirmPassword"
+              label="Confirm Password"
+              placeholder="Re-enter password"
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
             <View style={styles.passNoteRow}>
               <Ionicons name="ellipse" size={6} color={COLORS.GRAY_300} />
               <Text style={styles.passNote}>Minimum 8 characters</Text>
@@ -234,13 +187,13 @@ export default function RegisterScreen() {
         )}
 
         {step < 3 ? (
-          <TouchableOpacity style={styles.nextBtn} onPress={handleNext} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.nextBtn} onPress={goNext} activeOpacity={0.8}>
             <Text style={styles.nextBtnText}>Next</Text>
             <Ionicons name="arrow-forward" size={18} color={COLORS.WHITE} />
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.nextBtn} onPress={handleSubmit} disabled={isLoading} activeOpacity={0.8}>
-            {isLoading ? <ActivityIndicator color={COLORS.WHITE} /> : <Text style={styles.nextBtnText}>Register</Text>}
+          <TouchableOpacity style={styles.nextBtn} onPress={submit} disabled={isSubmitting} activeOpacity={0.8}>
+            {isSubmitting ? <ActivityIndicator color={COLORS.WHITE} /> : <Text style={styles.nextBtnText}>Register</Text>}
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -257,7 +210,6 @@ const styles = StyleSheet.create({
   flex2: { flex: 2 },
   flex1ml: { flex: 1, marginLeft: 8 },
   flex2ml: { flex: 2, marginLeft: 8 },
-  backText: { color: COLORS.WHITE, fontSize: 18 },
   stepTitle: { flex: 1, color: COLORS.WHITE, fontSize: 16, fontWeight: '700', textAlign: 'center' },
   progressBar: { flexDirection: 'row', gap: 4 },
   progressSeg: { flex: 1, height: 4, borderRadius: 2 },

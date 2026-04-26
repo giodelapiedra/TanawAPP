@@ -1,20 +1,6 @@
 import apiClient from './client';
 import { User } from '../types/user.types';
-
-interface RegisterResidentDto {
-  email: string;
-  phone: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  middleName?: string;
-  suffix?: string;
-  birthDate: string;
-  gender: 'MALE' | 'FEMALE';
-  barangayCode: string;
-  street?: string;
-  houseNo?: string;
-}
+import type { RegisterResidentDto } from '../schemas/auth.schema';
 
 interface LoginDto {
   identifier: string;

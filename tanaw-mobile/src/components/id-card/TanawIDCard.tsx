@@ -13,9 +13,10 @@ interface Props {
   gender?: Gender | string;
   qrSize?: number;
   style?: ViewStyle;
+  photoVersion?: string | null;
 }
 
-export default function TanawIDCard({ idData, gender, qrSize = 80, style }: Props) {
+export default function TanawIDCard({ idData, gender, qrSize = 80, style, photoVersion }: Props) {
   const fullName = getFullName(idData.firstName, idData.lastName, idData.middleName, idData.suffix);
   const initials = getInitials(idData.firstName, idData.lastName);
 
@@ -46,7 +47,7 @@ export default function TanawIDCard({ idData, gender, qrSize = 80, style }: Prop
         <View style={styles.cardProfile}>
           {idData.profilePhoto ? (
             <Image
-              key={idData.profilePhoto}
+              key={`${idData.profilePhoto}:${photoVersion ?? ''}`}
               source={{ uri: idData.profilePhoto }}
               style={styles.photoCircle}
             />

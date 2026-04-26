@@ -90,6 +90,7 @@ model User {
   receivedNotifications Notification[] @relation("NotificationRecipient")
   sentNotifications    Notification[] @relation("NotificationActor")
 
+  @@index([status, createdAt, id])
   @@map("users")
 }
 
@@ -179,9 +180,9 @@ model Post {
   likes      PostLike[]
   images     PostImage[]
 
-  @@index([barangayId, createdAt])
-  @@index([visibility, createdAt])
-  @@index([authorId, createdAt])
+  @@index([barangayId, createdAt, id])
+  @@index([visibility, createdAt, id])
+  @@index([authorId, createdAt, id])
   @@map("posts")
 }
 
@@ -220,7 +221,7 @@ model PostComment {
   content   String   @db.Text
   createdAt DateTime @default(now()) @map("created_at")
 
-  @@index([postId, createdAt])
+  @@index([postId, createdAt, id])
   @@map("post_comments")
 }
 
@@ -248,7 +249,7 @@ model Notification {
   isRead    Boolean          @default(false) @map("is_read")
   createdAt DateTime         @default(now()) @map("created_at")
 
-  @@index([userId, createdAt])
+  @@index([userId, createdAt, id])
   @@index([userId, isRead])
   @@map("notifications")
 }

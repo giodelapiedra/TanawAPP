@@ -82,7 +82,7 @@ function PostCardComponent({
             <Text style={styles.name} numberOfLines={1}>{fullName}</Text>
             <Text style={styles.time}>
               {formatTimeAgo(post.createdAt)}
-              {wasEdited ? ' · edited' : ''}
+              {wasEdited ? ' - edited' : ''}
             </Text>
           </View>
         </Pressable>
@@ -105,7 +105,7 @@ function PostCardComponent({
         {showFull || !truncated
           ? post.content
           : post.content.length > TRUNCATE_CHARS
-            ? post.content.slice(0, TRUNCATE_CHARS).trimEnd() + '…'
+            ? post.content.slice(0, TRUNCATE_CHARS).trimEnd() + '...'
             : post.content}
       </Text>
       {truncated && !expanded && (
@@ -150,36 +150,44 @@ function PostCardComponent({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.WHITE,
-    borderRadius: RADIUS.lg,
-    padding: 14,
+    borderRadius: RADIUS.xl,
+    padding: 16,
     borderWidth: 1,
-    borderColor: COLORS.GRAY_100,
-    marginBottom: 10,
+    borderColor: COLORS.BORDER,
+    marginBottom: 12,
   },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   authorPressable: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   avatar: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center', alignItems: 'center',
   },
   avatarImage: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: COLORS.GRAY_100,
   },
   avatarText: { color: COLORS.WHITE, fontSize: 13, fontWeight: '700' },
   headerInfo: { flex: 1 },
-  name: { fontSize: 13, fontWeight: '700', color: COLORS.GRAY_900 },
-  time: { fontSize: 11, color: COLORS.GRAY_300, marginTop: 1 },
-  content: { fontSize: 14, color: COLORS.GRAY_700, lineHeight: 20 },
+  name: { fontSize: 14, fontWeight: '800', color: COLORS.GRAY_900 },
+  time: { fontSize: 12, color: COLORS.GRAY_500, marginTop: 2 },
+  content: { fontSize: 15, color: COLORS.GRAY_700, lineHeight: 22 },
   seeMore: { fontSize: 13, color: COLORS.PRIMARY, fontWeight: '700', marginTop: 4 },
   footer: {
     borderTopWidth: 1, borderTopColor: COLORS.GRAY_50,
-    marginTop: 12, paddingTop: 10,
-    flexDirection: 'row', gap: 20,
+    marginTop: 14, paddingTop: 10,
+    flexDirection: 'row', gap: 10,
   },
-  footerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  footerText: { color: COLORS.GRAY_500, fontSize: 12, fontWeight: '600' },
+  footerBtn: {
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.GRAY_50,
+  },
+  footerText: { color: COLORS.GRAY_500, fontSize: 12, fontWeight: '700' },
   footerTextActive: { color: COLORS.PRIMARY },
   menuBtn: {
     width: 32, height: 32, borderRadius: 16,

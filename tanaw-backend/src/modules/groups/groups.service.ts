@@ -82,7 +82,7 @@ export async function listPosts(userId: string, code: string, query: ListQueryDt
 
   const posts = await prisma.post.findMany({
     where: { barangayId: group.id },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     take: query.limit + 1,
     ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
     include: {
@@ -216,7 +216,7 @@ export async function listComments(userId: string, postId: string, query: ListQu
 
   const comments = await prisma.postComment.findMany({
     where: { postId },
-    orderBy: { createdAt: 'asc' },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     take: query.limit + 1,
     ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
     include: { author: { select: AUTHOR_SELECT } },
